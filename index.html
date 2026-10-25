@@ -9,9 +9,80 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/styles.css?v=9" />
+  <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-card: #111827;
+      --bg-card-hover: #172033;
+      --border-subtle: #1f2937;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --accent-blue: #3b82f6;
+      --accent-amber: #f59e0b;
+    }
+
+    html, body {
+      background-color: #090d16 !important;
+      color: #f3f4f6 !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .font-mono-num {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .glass-card {
+      background: rgba(17, 24, 39, 0.95) !important;
+      border: 1px solid rgba(55, 65, 81, 0.65);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+    }
+
+    .pulse-dot {
+      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.45;
+        transform: scale(1.18);
+      }
+    }
+
+    .nav-item-active {
+      background: rgba(59, 130, 246, 0.18) !important;
+      color: #60a5fa !important;
+      border-color: rgba(59, 130, 246, 0.45) !important;
+    }
+
+    .bottom-nav-active {
+      color: #60a5fa !important;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b111e;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
 </head>
-<body class="min-h-screen antialiased selection:bg-blue-600 selection:text-white pb-20 lg:pb-0">
+<body class="min-h-screen bg-[#090d16] text-gray-100 antialiased selection:bg-blue-600 selection:text-white pb-20 lg:pb-0">
 
   <!-- ================================================================== -->
   <!-- HALAMAN LOGIN (VERSI DEMO)                                         -->
@@ -912,8 +983,59 @@ let ws = null;
 let currentPage = "overview";
 let activeEAVersion = localStorage.getItem("eamon_ea_version") || "STANDARD";
 let activeBrokerName = localStorage.getItem("eamon_broker_name") || "Headway";
-let liveBtcPrice = 80810.05;
-let standaloneOpenPrice = 80795.00;
+let liveBtcPrice = 80702.59;
+let standaloneOpenPrice = 80690.59;
+let standaloneBalance = 2101.35;
+let standaloneStartBalance = 2101.35;
+let standaloneEaEnabled = true;
+let standaloneCustomEaName = localStorage.getItem("eamon_custom_ea_name") || "";
+let standaloneLastCloseTs = 0;
+let standalonePositions = [
+  {
+    ticket: 19493258,
+    symbol: "BTCUSD",
+    type: "BUY",
+    volume: 0.01,
+    price_open: 80690.59,
+    price_current: 80702.59,
+    sl: 0.0,
+    tp: 0.0,
+    swap: 0.0,
+    commission: -0.05,
+    profit: 0.12,
+    net_profit: 0.07,
+    magic: 1255,
+    comment: "Init_B",
+    time: Math.floor(Date.now() / 1000) - 180,
+  },
+];
+let standaloneDeals = [
+  { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.45, net_profit: 10.35, magic: 1255, time: 1761378138 },
+  { ticket: 401261, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.15, net_profit: 10.10, magic: 1255, time: 1761375304 },
+  { ticket: 401260, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.55, net_profit: 10.45, magic: 1255, time: 1761370721 },
+  { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 11.30, net_profit: 11.20, magic: 1255, time: 1761366015 },
+  { ticket: 401258, symbol: "BTCUSD", type: "SELL", volume: 0.01, profit: -1.00, net_profit: -1.05, magic: 1255, time: 1761366014 },
+  { ticket: 401257, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.30, net_profit: 10.20, magic: 1255, time: 1761360513 },
+  { ticket: 401256, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: 1761354922 },
+  { ticket: 401255, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.10, net_profit: 10.05, magic: 1255, time: 1761349210 },
+  { ticket: 401254, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 12.50, net_profit: 12.40, magic: 1255, time: 1761340369 },
+  { ticket: 401253, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: -2.10, net_profit: -2.15, magic: 1255, time: 1761340368 },
+  { ticket: 401252, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: 1761332719 },
+  { ticket: 401251, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: 1761328087 },
+];
+let standaloneEquityHistory = [
+  { time: "00:00", balance: 2000.0, equity: 2000.0 },
+  { time: "00:48", balance: 2010.15, equity: 2010.15 },
+  { time: "02:05", balance: 2020.30, equity: 2020.30 },
+  { time: "04:12", balance: 2030.55, equity: 2030.55 },
+  { time: "06:40", balance: 2040.60, equity: 2040.60 },
+  { time: "08:15", balance: 2051.10, equity: 2051.10 },
+  { time: "09:48", balance: 2061.30, equity: 2061.30 },
+  { time: "11:20", balance: 2071.45, equity: 2071.45 },
+  { time: "12:38", balance: 2081.90, equity: 2081.90 },
+  { time: "13:55", balance: 2092.00, equity: 2092.00 },
+  { time: "14:42", balance: 2101.35, equity: 2101.35 },
+];
 
 let knownPositionTickets = null;
 let knownDealTickets = null;
@@ -1010,13 +1132,95 @@ function buildStandaloneState() {
     Exness: "Exness-MT5Real",
     XM: "XMGlobal-MT5 2",
   };
+  const symName = isCent ? "BTCUSDc" : "BTCUSD";
 
-  if (Math.abs(standaloneOpenPrice - liveBtcPrice) > 1200) {
-    standaloneOpenPrice = Number((liveBtcPrice - 14.5).toFixed(2));
+  const dailyProfitToday = Number((standaloneBalance - standaloneStartBalance).toFixed(2));
+  const isLocked = dailyProfitToday >= 100.0;
+
+  // Buka posisi baru otomatis jika belum ada posisi terbuka dan EA sedang ACTIVE
+  if (
+    !isLocked &&
+    standaloneEaEnabled &&
+    standalonePositions.length === 0 &&
+    Date.now() - standaloneLastCloseTs >= 8000
+  ) {
+    standaloneOpenPrice = Number((liveBtcPrice - 12.0).toFixed(2));
+    standalonePositions.push({
+      ticket: Math.floor(Date.now() / 100) % 80000000 + 10000000,
+      symbol: symName,
+      type: "BUY",
+      volume: 0.01,
+      price_open: standaloneOpenPrice,
+      price_current: liveBtcPrice,
+      sl: 0.0,
+      tp: 0.0,
+      swap: 0.0,
+      commission: -0.05,
+      profit: 0.12,
+      net_profit: 0.07,
+      magic: 1255,
+      comment: "Init_B",
+      time: Math.floor(Date.now() / 1000),
+    });
   }
-  const floatProfit = Number(((liveBtcPrice - standaloneOpenPrice) * 0.01 - 0.05).toFixed(2));
-  const baseBal = 2101.35;
-  const curEq = Number((baseBal + floatProfit).toFixed(2));
+
+  let totalFloating = 0.0;
+  let totalLots = 0.0;
+  for (const p of standalonePositions) {
+    p.symbol = symName;
+    if (Math.abs(p.price_open - liveBtcPrice) > 1500) {
+      p.price_open = Number((liveBtcPrice - 12.0).toFixed(2));
+    }
+    p.price_current = liveBtcPrice;
+    const diff = p.type === "BUY" ? p.price_current - p.price_open : p.price_open - p.price_current;
+    p.profit = Number((diff * p.volume).toFixed(2));
+    p.net_profit = Number((p.profit + p.swap + p.commission).toFixed(2));
+    totalFloating += p.net_profit;
+    totalLots += p.volume;
+  }
+  totalFloating = Number(totalFloating.toFixed(2));
+  totalLots = Number(totalLots.toFixed(2));
+
+  // Auto-close jika mencapai Target Group 10.00
+  if (standalonePositions.length > 0 && totalFloating >= 10.0) {
+    for (const p of standalonePositions) {
+      standaloneBalance = Number((standaloneBalance + p.net_profit).toFixed(2));
+      standaloneDeals.unshift({
+        ticket: Math.floor(Date.now() / 10) % 800000 + 400000,
+        symbol: symName,
+        type: p.type,
+        volume: p.volume,
+        profit: p.profit,
+        net_profit: p.net_profit,
+        magic: 1255,
+        time: Math.floor(Date.now() / 1000),
+      });
+    }
+    standalonePositions = [];
+    standaloneLastCloseTs = Date.now();
+    totalFloating = 0.0;
+    totalLots = 0.0;
+    standaloneEquityHistory.push({
+      time: now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+      balance: standaloneBalance,
+      equity: standaloneBalance,
+    });
+  }
+
+  const curEq = Number((standaloneBalance + totalFloating).toFixed(2));
+  const usedMargin = Number((totalLots * 680.0).toFixed(2));
+  const freeMargin = Number((curEq - usedMargin).toFixed(2));
+  const marginLevel = usedMargin > 0 ? Number(((curEq / usedMargin) * 100).toFixed(2)) : 0.0;
+  const totalClosedProfit = Number(
+    standaloneDeals.reduce((acc, d) => acc + Number(d.net_profit || 0), 0).toFixed(2)
+  );
+  const winCount = standaloneDeals.filter((d) => Number(d.net_profit) > 0).length;
+  const lossCount = standaloneDeals.filter((d) => Number(d.net_profit) <= 0).length;
+  const winRate = standaloneDeals.length > 0 ? Number(((winCount / standaloneDeals.length) * 100).toFixed(1)) : 0.0;
+
+  const defaultEaName = isCent
+    ? "SND V12.55 Cent Edition (BTCUSDc)"
+    : "SND V12.55 Standard Edition (BTCUSD)";
 
   return {
     timestamp: `${now.toISOString().slice(0, 10)} ${timeStr}`,
@@ -1034,112 +1238,67 @@ function buildStandaloneState() {
       currency: isCent ? "USC (Cent)" : "USD",
       ea_version: activeEAVersion,
       leverage: 500,
-      balance: baseBal,
+      balance: standaloneBalance,
       equity: curEq,
-      profit: floatProfit,
-      margin: 6.8,
-      margin_free: Number((curEq - 6.8).toFixed(2)),
-      margin_level: Number(((curEq / 6.8) * 100).toFixed(1)),
+      profit: totalFloating,
+      margin: usedMargin,
+      margin_free: freeMargin,
+      margin_level: marginLevel,
       btc_price: liveBtcPrice,
       mode: "SIMULATION",
     },
     metrics: {
-      balance: baseBal,
+      balance: standaloneBalance,
       equity: curEq,
-      floating_pnl: floatProfit,
-      floating_pct: Number(((floatProfit / baseBal) * 100).toFixed(2)),
-      floating_dd_usd: floatProfit < 0 ? Math.abs(floatProfit) : 0.0,
-      floating_dd_pct: floatProfit < 0 ? Number(((Math.abs(floatProfit) / baseBal) * 100).toFixed(2)) : 0.0,
-      peak_equity: Math.max(baseBal, curEq),
+      floating_pnl: totalFloating,
+      floating_pct: Number(((totalFloating / standaloneBalance) * 100).toFixed(2)),
+      floating_dd_usd: totalFloating < 0 ? Math.abs(totalFloating) : 0.0,
+      floating_dd_pct: totalFloating < 0 ? Number(((Math.abs(totalFloating) / standaloneBalance) * 100).toFixed(2)) : 0.0,
+      peak_equity: Math.max(standaloneBalance, curEq),
       peak_dd_usd: 0.0,
       peak_dd_pct: 0.0,
-      margin: 6.8,
-      free_margin: Number((curEq - 6.8).toFixed(2)),
-      margin_level: Number(((curEq / 6.8) * 100).toFixed(1)),
-      open_positions_count: 1,
-      total_open_lots: 0.01,
-      today_realized_pnl: 101.35,
-      today_realized_pct: 5.07,
-      today_net_pnl: Number((101.35 + floatProfit).toFixed(2)),
-      total_realized_pnl: 101.35,
+      margin: usedMargin,
+      free_margin: freeMargin,
+      margin_level: marginLevel,
+      open_positions_count: standalonePositions.length,
+      total_open_lots: totalLots,
+      today_realized_pnl: totalClosedProfit,
+      today_realized_pct: Number(((totalClosedProfit / 2000.0) * 100).toFixed(2)),
+      today_net_pnl: Number((totalClosedProfit + totalFloating).toFixed(2)),
+      total_realized_pnl: totalClosedProfit,
     },
     magic_breakdown: [
       {
         magic: 1255,
-        name: isCent
-          ? "SND V12.55 Cent Edition (BTCUSDc)"
-          : "SND V12.55 Standard Edition (BTCUSD)",
-        status: "ACTIVE",
-        enabled: true,
-        symbol: isCent ? "BTCUSDc" : "BTCUSD",
+        name: standaloneCustomEaName || defaultEaName,
+        status: isLocked ? "LOCKED_TARGET" : standaloneEaEnabled ? "ACTIVE" : "PAUSED",
+        enabled: standaloneEaEnabled,
+        symbol: symName,
         timeframe: "M5",
         daily_limit: 100.0,
         group_target: 10.0,
-        start_balance: 2101.35,
-        bridge_daily_profit: 0.0,
+        start_balance: standaloneStartBalance,
+        bridge_daily_profit: Number((standaloneBalance - standaloneStartBalance).toFixed(2)),
         max_dir_pos: 3,
-        open_positions: 1,
-        buy_positions: 1,
-        sell_positions: 0,
-        open_lots: 0.01,
-        floating_pnl: floatProfit,
+        open_positions: standalonePositions.length,
+        buy_positions: standalonePositions.filter((p) => p.type === "BUY").length,
+        sell_positions: standalonePositions.filter((p) => p.type === "SELL").length,
+        open_lots: totalLots,
+        floating_pnl: totalFloating,
         floating_dd_pct: 0.0,
-        closed_trades: 12,
-        win_trades: 10,
-        loss_trades: 2,
-        win_rate: 83.3,
+        closed_trades: standaloneDeals.length,
+        win_trades: winCount,
+        loss_trades: lossCount,
+        win_rate: winRate,
         profit_factor: 33.69,
-        realized_pnl: 101.35,
-        today_pnl: floatProfit,
-        total_net_pnl: Number((101.35 + floatProfit).toFixed(2)),
+        realized_pnl: totalClosedProfit,
+        today_pnl: Number((standaloneBalance - standaloneStartBalance + totalFloating).toFixed(2)),
+        total_net_pnl: Number((totalClosedProfit + totalFloating).toFixed(2)),
       },
     ],
-    positions: [
-      {
-        ticket: 401299,
-        symbol: isCent ? "BTCUSDc" : "BTCUSD",
-        type: "BUY",
-        volume: 0.01,
-        price_open: standaloneOpenPrice,
-        price_current: liveBtcPrice,
-        sl: 0.0,
-        tp: 0.0,
-        swap: 0.0,
-        commission: -0.05,
-        profit: Number(((liveBtcPrice - standaloneOpenPrice) * 0.01).toFixed(2)),
-        net_profit: floatProfit,
-        magic: 1255,
-        comment: "Init_B",
-        time: Math.floor(Date.now() / 1000) - 300,
-      },
-    ],
-    recent_deals: [
-      { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.45, net_profit: 10.35, magic: 1255, time: 1761378138 },
-      { ticket: 401261, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.15, net_profit: 10.10, magic: 1255, time: 1761375304 },
-      { ticket: 401260, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.55, net_profit: 10.45, magic: 1255, time: 1761370721 },
-      { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 11.30, net_profit: 11.20, magic: 1255, time: 1761366015 },
-      { ticket: 401258, symbol: "BTCUSD", type: "SELL", volume: 0.01, profit: -1.00, net_profit: -1.05, magic: 1255, time: 1761366014 },
-      { ticket: 401257, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.30, net_profit: 10.20, magic: 1255, time: 1761360513 },
-      { ticket: 401256, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: 1761354922 },
-      { ticket: 401255, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.10, net_profit: 10.05, magic: 1255, time: 1761349210 },
-      { ticket: 401254, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 12.50, net_profit: 12.40, magic: 1255, time: 1761340369 },
-      { ticket: 401253, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: -2.10, net_profit: -2.15, magic: 1255, time: 1761340368 },
-      { ticket: 401252, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: 1761332719 },
-      { ticket: 401251, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: 1761328087 },
-    ],
-    equity_history: [
-      { time: "00:00", balance: 2000.0, equity: 2000.0 },
-      { time: "00:48", balance: 2010.15, equity: 2010.15 },
-      { time: "02:05", balance: 2020.30, equity: 2020.30 },
-      { time: "04:12", balance: 2030.55, equity: 2030.55 },
-      { time: "06:40", balance: 2040.60, equity: 2040.60 },
-      { time: "08:15", balance: 2051.10, equity: 2051.10 },
-      { time: "09:48", balance: 2061.30, equity: 2061.30 },
-      { time: "11:20", balance: 2071.45, equity: 2071.45 },
-      { time: "12:38", balance: 2081.90, equity: 2081.90 },
-      { time: "13:55", balance: 2092.00, equity: 2092.00 },
-      { time: "14:42", balance: 2101.35, equity: 2101.35 },
-    ],
+    positions: standalonePositions,
+    recent_deals: standaloneDeals,
+    equity_history: standaloneEquityHistory,
   };
 }
 
@@ -2058,10 +2217,32 @@ async function closeSinglePosition(ticket) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ticket: Number(ticket) }),
     });
-    const data = await res.json();
-    if (data.state) updateDashboard(data.state);
-  } catch (err) {
-    showToast("Gagal menutup posisi.");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.state) updateDashboard(data.state);
+      return;
+    }
+  } catch (err) {}
+
+  // Fallback Standalone (GitHub Pages / Vercel)
+  const idx = standalonePositions.findIndex((p) => Number(p.ticket) === Number(ticket));
+  if (idx !== -1) {
+    const removed = standalonePositions.splice(idx, 1)[0];
+    const net = Number(removed.net_profit || 0);
+    standaloneBalance = Number((standaloneBalance + net).toFixed(2));
+    standaloneLastCloseTs = Date.now();
+    standaloneDeals.unshift({
+      ticket: Math.floor(Date.now() / 10) % 800000 + 400000,
+      symbol: removed.symbol,
+      type: removed.type,
+      volume: removed.volume,
+      profit: removed.profit,
+      net_profit: net,
+      magic: removed.magic,
+      time: Math.floor(Date.now() / 1000),
+    });
+    updateDashboard(buildStandaloneState());
+    showToast(`Posisi #${ticket} ditutup pada PnL ${formatAmount(net, true)}.`);
   }
 }
 
@@ -2073,26 +2254,61 @@ async function closeAllPositions(magic, label) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ magic: Number(magic) }),
     });
-    const data = await res.json();
-    if (data.state) updateDashboard(data.state);
-  } catch (err) {
+    if (res.ok) {
+      const data = await res.json();
+      if (data.state) updateDashboard(data.state);
+      return;
+    }
+  } catch (err) {}
+
+  // Fallback Standalone (GitHub Pages / Vercel)
+  const toClose = standalonePositions.filter(
+    (p) => Number(magic) === -1 || Number(p.magic) === Number(magic)
+  );
+  if (!toClose.length) {
     showToast("Tidak ada posisi aktif untuk ditutup.");
+    return;
   }
+  for (const p of toClose) {
+    const net = Number(p.net_profit || 0);
+    standaloneBalance = Number((standaloneBalance + net).toFixed(2));
+    standaloneDeals.unshift({
+      ticket: Math.floor(Date.now() / 10 + Math.random() * 100) % 800000 + 400000,
+      symbol: p.symbol,
+      type: p.type,
+      volume: p.volume,
+      profit: p.profit,
+      net_profit: net,
+      magic: p.magic,
+      time: Math.floor(Date.now() / 1000),
+    });
+  }
+  standalonePositions = standalonePositions.filter(
+    (p) => !(Number(magic) === -1 || Number(p.magic) === Number(magic))
+  );
+  standaloneLastCloseTs = Date.now();
+  updateDashboard(buildStandaloneState());
+  showToast(`Berhasil menutup ${toClose.length} posisi untuk ${label}.`);
 }
 
 async function toggleEA(magic, enabled) {
+  standaloneEaEnabled = Boolean(enabled);
   try {
     const res = await fetch("/api/ea/toggle", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ magic: Number(magic), enabled: Boolean(enabled) }),
     });
-    const data = await res.json();
-    showToast(`Status EA Magic #${magic} diubah menjadi ${enabled ? "ACTIVE" : "PAUSED"}.`);
-    if (data.state) updateDashboard(data.state);
-  } catch (err) {
-    showToast("Status EA diperbarui.");
-  }
+    if (res.ok) {
+      const data = await res.json();
+      showToast(`Status EA Magic #${magic} diubah menjadi ${enabled ? "ACTIVE" : "PAUSED"}.`);
+      if (data.state) updateDashboard(data.state);
+      return;
+    }
+  } catch (err) {}
+
+  updateDashboard(buildStandaloneState());
+  showToast(`Status EA Magic #${magic} diubah menjadi ${enabled ? "ACTIVE" : "PAUSED"}.`);
 }
 
 async function toggleSimulationMode() {
@@ -2105,18 +2321,20 @@ async function toggleSimulationMode() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ force_mock: nextForceMock }),
     });
-    const data = await res.json();
-    if (data.state) {
-      updateDashboard(data.state);
-      if (data.state.connection.connected_to_mt5) {
-        showToast("Terhubung langsung ke terminal MetaTrader 5!");
-      } else {
-        showToast("Berjalan dalam Mode Simulasi (Terminal MT5 belum terdeteksi aktif).");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.state) {
+        updateDashboard(data.state);
+        if (data.state.connection.connected_to_mt5) {
+          showToast("Terhubung langsung ke terminal MetaTrader 5!");
+        } else {
+          showToast("Berjalan dalam Mode Simulasi (Terminal MT5 belum terdeteksi aktif).");
+        }
+        return;
       }
     }
-  } catch (err) {
-    showToast("Berjalan dalam Mode Demo Mandiri.");
-  }
+  } catch (err) {}
+  showToast("Berjalan dalam Mode Simulasi Mandiri (Harga BTCUSD Real-Time Aktif).");
 }
 
 function openRenameModal(magic, currentName) {
@@ -2136,20 +2354,26 @@ function closeRenameModal() {
 async function saveRenameModal() {
   if (currentRenamingMagic === null) return;
   const newName = document.getElementById("rename-input").value.trim();
+  standaloneCustomEaName = newName;
+  localStorage.setItem("eamon_custom_ea_name", newName);
   try {
     const res = await fetch("/api/ea/label", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ magic: Number(currentRenamingMagic), name: newName }),
     });
-    const data = await res.json();
-    closeRenameModal();
-    showToast(`Nama EA untuk Magic #${currentRenamingMagic} disimpan.`);
-    if (data.state) updateDashboard(data.state);
-  } catch (err) {
-    closeRenameModal();
-    showToast("Nama EA disimpan.");
-  }
+    if (res.ok) {
+      const data = await res.json();
+      closeRenameModal();
+      showToast(`Nama EA untuk Magic #${currentRenamingMagic} disimpan.`);
+      if (data.state) updateDashboard(data.state);
+      return;
+    }
+  } catch (err) {}
+
+  closeRenameModal();
+  updateDashboard(buildStandaloneState());
+  showToast(`Nama EA untuk Magic #${currentRenamingMagic} disimpan.`);
 }
 
 function connectWebSocket() {
