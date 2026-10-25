@@ -1,0 +1,2205 @@
+﻿<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MT5 EA Monitor & Trading Assistant (Demo)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css?v=9" />
+</head>
+<body class="min-h-screen antialiased selection:bg-blue-600 selection:text-white pb-20 lg:pb-0">
+
+  <!-- ================================================================== -->
+  <!-- HALAMAN LOGIN (VERSI DEMO)                                         -->
+  <!-- ================================================================== -->
+  <div id="login-screen" class="hidden fixed inset-0 z-[100] bg-[#070a12] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-card rounded-3xl max-w-sm w-full p-6 sm:p-7 border border-gray-800 shadow-2xl space-y-4 my-auto">
+      <div class="flex flex-col items-center text-center space-y-2">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-900/50">
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 14l4-4 3 3 5-6" />
+          </svg>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
+          Versi Demo • v12.55
+        </span>
+        <h1 class="text-xl font-bold text-white">MT5 EA Monitor</h1>
+        <p class="text-xs text-gray-400">Asisten Monitoring & Manajemen EA SND V12.55 (BTCUSD)</p>
+      </div>
+
+      <form onsubmit="handleLogin(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-300 mb-1">Username / ID Trader</label>
+          <input id="login-username" type="text" value="demo_trader" required class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-mono-num" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-300 mb-1">PIN / Password Demo</label>
+          <input id="login-password" type="password" value="1255" required class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-mono-num" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-medium text-gray-400 mb-1">Pilih Broker</label>
+            <select id="login-broker" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="Headway">Headway</option>
+              <option value="Exness">Exness</option>
+              <option value="XM">XM</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-medium text-gray-400 mb-1">Pilih EA Versi</label>
+            <select id="login-ea-version" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="CENT">Akun CENT ($20)</option>
+              <option value="STANDARD">Standard ($2000)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-0.5">
+          <button type="button" onclick="fillDemoAccount('demo_trader')" class="py-1.5 px-2 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700 text-[11px] text-blue-400 font-mono-num">
+            Akun: demo_trader
+          </button>
+          <button type="button" onclick="fillDemoAccount('ibnu_trader')" class="py-1.5 px-2 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700 text-[11px] text-emerald-400 font-mono-num">
+            Akun: ibnu_trader
+          </button>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-900/40 transition">
+          Masuk ke Dashboard (Demo)
+        </button>
+      </form>
+
+      <div class="pt-3 border-t border-gray-800/80 text-center">
+        <p class="text-[11px] text-gray-400">Gunakan akun publik <code class="text-blue-400">demo_trader</code> (PIN: <code class="text-blue-400">1255</code>) untuk akses bersama</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- BACKDROP OVERLAY SIDEBAR MOBILE                                    -->
+  <!-- ================================================================== -->
+  <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"></div>
+
+  <div class="flex min-h-screen">
+
+    <!-- ================================================================== -->
+    <!-- NAVIGATION SIDEBAR (Tampil di HP via Drawer & Tampil Tetap di PC)   -->
+    <!-- ================================================================== -->
+    <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-50 w-72 transform -translate-x-full lg:translate-x-0 transition-transform duration-200 ease-in-out flex flex-col border-r border-gray-800/90 bg-[#0b101b]">
+      
+      <!-- Brand Header + Tombol Tutup di HP -->
+      <div class="p-4 border-b border-gray-800/80 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-900/40 shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 14l4-4 3 3 5-6" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="text-sm font-bold text-white leading-tight">MT5 EA Monitor</h1>
+              <span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">DEMO</span>
+            </div>
+            <p class="text-[11px] text-gray-400 font-mono-num">SND V12.55 • BTCUSD</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeMobileSidebar()" class="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800">
+          ✕
+        </button>
+      </div>
+
+      <!-- Kartu Ringkas Profil Pengguna di Sidebar -->
+      <div class="p-4 border-b border-gray-800/80 bg-gray-900/40">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-sm shrink-0" id="sidebar-user-avatar">
+            DT
+          </div>
+          <div class="min-w-0 flex-1">
+            <div id="sidebar-user-name" class="text-sm font-bold text-white truncate">Demo Trader (Publik)</div>
+            <div class="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              <span id="sidebar-version-label">Mode: Akun Standard</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Menu Halaman Sidebar -->
+      <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+        <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">Monitoring</div>
+
+        <button type="button" onclick="switchPage('overview')" id="side-nav-overview" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition nav-item-active">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            <span>Ringkasan Akun</span>
+          </div>
+        </button>
+
+        <button type="button" onclick="switchPage('ea')" id="side-nav-ea" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+            </svg>
+            <span>Performa & Kontrol EA</span>
+          </div>
+        </button>
+
+        <button type="button" onclick="switchPage('terminal')" id="side-nav-terminal" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Terminal Transaksi</span>
+          </div>
+          <span id="side-pos-badge" class="px-2 py-0.5 text-[10px] rounded-full bg-blue-500/20 text-blue-400 font-mono-num">0</span>
+        </button>
+
+        <div class="pt-3 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">Konfigurasi EA & Broker</div>
+
+        <!-- MENU BARU: EA VERSI (CENT vs STANDARD) -->
+        <button type="button" onclick="switchPage('eaversion')" id="side-nav-eaversion" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <span>EA Versi</span>
+          </div>
+          <span id="side-eaversion-badge" class="px-2 py-0.5 text-[10px] rounded bg-emerald-500/15 text-emerald-400 font-mono-num font-bold">STD</span>
+        </button>
+
+        <!-- MENU BARU: BROKER (HEADWAY, XM, EXNESS) -->
+        <button type="button" onclick="switchPage('broker')" id="side-nav-broker" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <span>Broker</span>
+          </div>
+          <span id="side-broker-badge" class="px-2 py-0.5 text-[10px] rounded bg-blue-500/15 text-blue-400 font-mono-num font-bold">Headway</span>
+        </button>
+
+        <div class="pt-3 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">Akun & Sistem</div>
+
+        <button type="button" onclick="switchPage('profile')" id="side-nav-profile" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <span>Profil Pengguna</span>
+          </div>
+        </button>
+
+        <button type="button" onclick="switchPage('settings')" id="side-nav-settings" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
+          <div class="flex items-center gap-3">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Pengaturan Aplikasi</span>
+          </div>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer: Tombol Panic & Logout -->
+      <div class="p-4 border-t border-gray-800/80 space-y-2.5">
+        <button type="button" onclick="closeAllPositions(-1, 'SEMUA EA')" class="w-full py-2.5 px-3 rounded-xl text-xs font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/40 transition flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Panic Close All
+        </button>
+
+        <button type="button" onclick="handleLogout()" class="w-full py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-800/90 hover:bg-gray-700 text-gray-300 border border-gray-700 transition flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Keluar / Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- ================================================================== -->
+    <!-- MAIN CONTENT WRAPPER                                               -->
+    <!-- ================================================================== -->
+    <div class="flex-1 lg:pl-72 flex flex-col min-w-0">
+
+      <!-- TOP HEADER -->
+      <header class="sticky top-0 z-30 border-b border-gray-800/80 bg-[#090d16]/95 backdrop-blur-md">
+        <div class="max-w-5xl mx-auto px-3.5 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+          
+          <!-- Kiri: Tombol Buka Sidebar (HP) + Judul Halaman & Badge Disusun Atas-Bawah -->
+          <div class="flex items-center gap-3 min-w-0">
+            <button type="button" onclick="openMobileSidebar()" class="lg:hidden p-2 rounded-xl bg-gray-900 border border-gray-800 text-gray-200 hover:bg-gray-800 shrink-0" aria-label="Buka Menu Sidebar">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <div class="min-w-0 flex flex-col">
+              <h2 id="page-header-title" class="text-sm sm:text-base font-bold text-white leading-tight truncate">
+                Ringkasan Akun
+              </h2>
+              <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                <span id="connection-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 pulse-dot"></span>
+                  <span id="connection-mode-text">MODE SIMULASI</span>
+                </span>
+                <span id="header-broker-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 shrink-0">
+                  Headway
+                </span>
+                <span id="header-eaversion-badge" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  STANDARD ($2000)
+                </span>
+                <span id="header-btc-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono-num font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40 shrink-0">
+                  BTCUSD: <span id="header-btc-price">$80,810.05</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kanan Atas: Tombol Lonceng Notifikasi -->
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" onclick="toggleNotifPanel()" class="relative p-2.5 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 border border-sky-400/50 text-sky-300 transition shadow-md" title="Notifikasi Eksekusi">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span id="notif-badge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center font-mono-num shadow">
+                0
+              </span>
+            </button>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- BACKDROP GELAP SAAT POPUP NOTIFIKASI DIBUKA AGAR TIDAK BERTUMPUK DENGAN HALAMAN -->
+      <div id="notif-backdrop" onclick="toggleNotifPanel()" class="hidden fixed inset-0 bg-black/70 backdrop-blur-[2px] z-40"></div>
+
+      <!-- PANEL POPUP NOTIFIKASI (WARNA KONTRAS BIRU TUA TERANG & HEADER TEGAS) -->
+      <div id="notif-panel" class="hidden fixed top-16 right-3 left-3 sm:left-auto sm:w-96 z-50 rounded-2xl bg-[#162447] border-2 border-sky-400 shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden">
+        <div class="bg-gradient-to-r from-sky-600 to-blue-700 px-4 py-3 flex items-center justify-between border-b border-sky-300/40">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+              <span>🔔</span>
+              <span>Notifikasi Transaksi EA</span>
+            </h3>
+            <p class="text-[11px] text-sky-100">Laporan langsung saat BUY, SELL & CLOSED</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="clearNotifications()" class="px-2 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-[11px] font-semibold text-white transition">Hapus</button>
+            <button type="button" onclick="toggleNotifPanel()" class="w-7 h-7 rounded-lg bg-black/25 hover:bg-black/40 text-white flex items-center justify-center font-bold">✕</button>
+          </div>
+        </div>
+
+        <div id="notif-list" class="p-3.5 max-h-80 overflow-y-auto space-y-2.5 bg-[#101c38]"></div>
+      </div>
+
+      <!-- Toast Notification Banner (Warna Kontras Cerah Agar Tidak Menyatu Dengan Latar Gelap) -->
+      <div id="toast-banner" class="hidden fixed top-16 right-4 left-4 sm:left-auto z-50 px-4 py-3 rounded-xl bg-gradient-to-r from-sky-600 via-blue-700 to-indigo-800 border-2 border-sky-300 text-xs sm:text-sm font-semibold text-white shadow-[0_20px_50px_rgba(0,0,0,0.9)] flex items-center gap-2.5">
+        <span id="toast-text"></span>
+      </div>
+
+      <!-- AREA HALAMAN DINAMIS -->
+      <main class="max-w-5xl w-full mx-auto px-3.5 sm:px-6 py-4 space-y-5">
+
+        <!-- ========================================================== -->
+        <!-- HALAMAN 1: RINGKASAN AKUN (OVERVIEW)                       -->
+        <!-- ========================================================== -->
+        <section id="page-overview" class="space-y-3.5">
+
+          <!-- 1. KARTU BALANCE AKUN (Paling Atas - Lebar Penuh) -->
+          <div class="glass-card rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Balance Akun</span>
+              <span class="px-2.5 py-0.5 text-xs rounded-md bg-gray-800 text-gray-300 font-mono-num font-semibold" id="kpi-currency">USD</span>
+            </div>
+            <div class="mt-2 mb-1">
+              <div id="kpi-balance" class="text-3xl sm:text-4xl font-bold font-mono-num text-white tracking-tight">$2,101.35</div>
+            </div>
+            <div id="kpi-balance-sub" class="text-xs text-blue-400 font-mono-num mb-2.5">Mode Akun Standard (Min. Balance $2,000 USD)</div>
+            <div class="flex items-center justify-between text-xs pt-2.5 border-t border-gray-800/80">
+              <span class="text-gray-400">Profit Closed Hari Ini:</span>
+              <span id="kpi-today-realized" class="font-mono-num font-bold text-emerald-400">+$101.35 (+5.07%)</span>
+            </div>
+          </div>
+
+          <!-- 2. EQUITY REAL-TIME & FLOATING PNL (2 Kartu Berdampingan) -->
+          <div class="grid grid-cols-2 gap-3 sm:gap-4">
+            <!-- Kartu Kiri: Equity Real-Time -->
+            <div class="glass-card rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-400">Equity Real-Time</span>
+                </div>
+                <div id="kpi-equity" class="mt-2 text-xl sm:text-2xl font-bold font-mono-num text-white truncate">$2,101.35</div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-gray-800/80 flex items-center justify-between text-[11px]">
+                <span class="text-gray-400">Peak:</span>
+                <span id="kpi-peak-equity" class="font-mono-num text-gray-300 font-medium">$2,101.35</span>
+              </div>
+            </div>
+
+            <!-- Kartu Kanan: Floating PnL -->
+            <div class="glass-card rounded-2xl p-3.5 sm:p-5 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-gray-400">Floating PnL</span>
+                  <span id="kpi-floating-pct" class="px-1.5 py-0.5 text-[10px] rounded font-mono-num font-semibold bg-gray-800 text-gray-300">0.0%</span>
+                </div>
+                <div id="kpi-floating-pnl" class="mt-2 text-xl sm:text-2xl font-bold font-mono-num text-emerald-400 truncate">$0.00</div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-gray-800/80 flex items-center justify-between text-[11px]">
+                <span class="text-gray-400">Aktif:</span>
+                <span id="kpi-open-summary" class="font-mono-num text-gray-200 font-medium truncate">0 Pos (0.00 Lot)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. KARTU MARGIN LEVEL -->
+          <div class="glass-card rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Margin Level</span>
+              <span id="kpi-leverage" class="px-2.5 py-0.5 text-xs rounded-md bg-blue-500/15 text-blue-400 font-mono-num font-semibold">1:500</span>
+            </div>
+            <div class="mt-1.5 mb-2.5">
+              <div id="kpi-margin-level" class="text-2xl sm:text-3xl font-bold font-mono-num text-blue-400">∞ (Tanpa Margin)</div>
+            </div>
+            <div class="flex items-center justify-between text-xs pt-2.5 border-t border-gray-800/80">
+              <span class="text-gray-400">Free Margin Tersedia:</span>
+              <span id="kpi-free-margin" class="font-mono-num text-gray-200 font-semibold">$2,101.35</span>
+            </div>
+          </div>
+
+          <!-- 4. KARTU DRAWDOWN SAAT INI -->
+          <div class="glass-card rounded-2xl p-4 sm:p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Drawdown Saat Ini</span>
+              <span id="kpi-dd-status" class="px-2.5 py-0.5 text-xs rounded-md bg-emerald-500/15 text-emerald-400 font-semibold">RENDAH / AMAN</span>
+            </div>
+            <div class="flex items-baseline gap-2.5">
+              <div id="kpi-dd-pct" class="text-2xl sm:text-3xl font-bold font-mono-num text-white">0.00%</div>
+              <div id="kpi-dd-usd" class="text-sm font-mono-num text-gray-400">($0.00)</div>
+            </div>
+            <div class="space-y-2 pt-1">
+              <div class="w-full h-4 bg-gray-800/90 rounded-full overflow-hidden p-0.5 border border-gray-700/60">
+                <div id="kpi-dd-bar" class="h-full rounded-full bg-emerald-500 transition-all duration-300" style="width: 3%"></div>
+              </div>
+              <div class="flex justify-between text-xs text-gray-400 font-mono-num pt-0.5">
+                <span>Floating DD: <strong id="kpi-float-dd" class="text-gray-200">0.00%</strong></span>
+                <span>Peak DD: <strong id="kpi-peak-dd" class="text-gray-200">0.00%</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. GRAFIK EQUITY & BALANCE REAL-TIME -->
+          <div class="glass-card rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-800">
+              <div>
+                <h3 class="text-sm sm:text-base font-bold text-white">Kurva Pertumbuhan Balance & Equity</h3>
+                <p class="text-[11px] text-gray-400">Akumulasi profit grup menuju target harian</p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 text-xs text-emerald-400 font-mono-num">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+                Akurat
+              </span>
+            </div>
+            <div class="relative w-full h-[240px] sm:h-[300px] mt-3">
+              <canvas id="equityChart"></canvas>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- HALAMAN 2: PERFORMA & KONTROL EA PER MAGIC NUMBER          -->
+        <!-- ========================================================== -->
+        <section id="page-ea" class="hidden space-y-4">
+          <div class="glass-card rounded-2xl p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-4 border-b border-gray-800">
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-white">Performa & Kontrol EA per Magic Number</h2>
+                <p class="text-xs text-gray-400 mt-0.5">Pantauan khusus robot EA & progres target harian</p>
+              </div>
+              <div class="text-xs text-gray-400 font-mono-num">
+                Total Closed PnL Hari Ini: <strong id="total-realized-30d" class="text-emerald-400 text-sm">+$101.35</strong>
+              </div>
+            </div>
+
+            <div id="magic-cards-container" class="mt-4 space-y-4"></div>
+          </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- HALAMAN 3: TERMINAL TRANSAKSI (POSISI & RIWAYAT)           -->
+        <!-- ========================================================== -->
+        <section id="page-terminal" class="hidden space-y-4">
+          <div class="glass-card rounded-2xl p-4 sm:p-6">
+            
+            <div class="grid grid-cols-2 gap-2 pb-4 border-b border-gray-800">
+              <button type="button" id="tab-btn-positions" onclick="switchBottomTab('positions')" class="py-2.5 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white transition text-center">
+                Posisi Terbuka (<span id="tab-pos-count">0</span>)
+              </button>
+              <button type="button" id="tab-btn-deals" onclick="switchBottomTab('deals')" class="py-2.5 px-3 rounded-xl text-xs font-bold bg-gray-800 hover:bg-gray-700 text-gray-300 transition text-center">
+                Riwayat Closed (<span id="tab-deals-count">0</span>)
+              </button>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-1.5">
+              <label for="magic-filter-select" class="text-xs font-semibold text-gray-300">
+                Filter EA / Magic:
+              </label>
+              <select id="magic-filter-select" onchange="setMagicFilter(this.value)" class="w-full sm:w-72 bg-gray-900 border border-gray-700 rounded-xl px-3.5 py-2.5 text-xs text-gray-100 focus:outline-none focus:border-blue-500 font-mono-num">
+                <option value="ALL">Semua Magic Number</option>
+              </select>
+            </div>
+
+            <!-- Tabel 1: Posisi Terbuka -->
+            <div id="tab-panel-positions" class="mt-4 space-y-3">
+              <div class="overflow-x-auto -mx-2 px-2">
+                <table class="w-full text-left border-collapse min-w-[580px]">
+                  <thead>
+                    <tr class="border-b border-gray-800 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                      <th class="py-2.5 px-2.5">Ticket</th>
+                      <th class="py-2.5 px-2.5">Symbol</th>
+                      <th class="py-2.5 px-2.5">Type</th>
+                      <th class="py-2.5 px-2.5">Lot</th>
+                      <th class="py-2.5 px-2.5">EA / Magic Number</th>
+                      <th class="py-2.5 px-2.5">Open</th>
+                      <th class="py-2.5 px-2.5">Current</th>
+                      <th class="py-2.5 px-2.5 text-right">Floating PnL</th>
+                      <th class="py-2.5 px-2.5 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="open-positions-tbody" class="divide-y divide-gray-800/60 text-xs font-mono-num"></tbody>
+                </table>
+              </div>
+
+              <div class="p-3.5 sm:p-4 rounded-xl bg-gray-900/95 border border-gray-800 flex items-center justify-between gap-2">
+                <div>
+                  <div class="text-xs font-semibold text-gray-300">Total Floating PnL Saat Ini</div>
+                  <div id="term-open-sub" class="text-[11px] text-gray-400 font-mono-num">0 Posisi Aktif (0.00 Lot)</div>
+                </div>
+                <div id="term-floating-pnl" class="text-lg sm:text-xl font-bold font-mono-num text-emerald-400">
+                  $0.00
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabel 2: Riwayat Closed Deals (Presisi Tanpa Scroll Samping di HP) -->
+            <div id="tab-panel-deals" class="hidden mt-4 w-full overflow-x-hidden space-y-3">
+              <table class="w-full table-fixed text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-gray-800 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    <th class="py-2 px-1.5 w-[24%]">Waktu</th>
+                    <th class="py-2 px-1.5 w-[23%]">Symbol</th>
+                    <th class="py-2 px-1 w-[16%] text-center">Type</th>
+                    <th class="py-2 px-1 w-[15%] text-right">Lot</th>
+                    <th class="py-2 px-1.5 w-[22%] text-right">Profit</th>
+                  </tr>
+                </thead>
+                <tbody id="closed-deals-tbody" class="divide-y divide-gray-800/60 text-[11px] sm:text-xs font-mono-num"></tbody>
+              </table>
+
+              <div class="p-3.5 sm:p-4 rounded-xl bg-gray-900/95 border border-gray-800 flex items-center justify-between gap-2">
+                <div>
+                  <div class="text-xs font-semibold text-gray-300">Akumulasi Profit Closed</div>
+                  <div id="term-closed-sub" class="text-[11px] text-gray-400 font-mono-num">12 Transaksi Selesai</div>
+                </div>
+                <div id="term-closed-profit" class="text-lg sm:text-xl font-bold font-mono-num text-emerald-400">
+                  +$101.35
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- HALAMAN 4: EA VERSI (MODE AKUN CENT vs MODE AKUN STANDARD) -->
+        <!-- ========================================================== -->
+        <section id="page-eaversion" class="hidden space-y-4">
+          <div class="glass-card rounded-2xl p-4 sm:p-6 space-y-5">
+            <div class="border-b border-gray-800 pb-4">
+              <h2 class="text-base sm:text-lg font-bold text-white">Pilihan Versi EA (Cent & Standard)</h2>
+              <p class="text-xs sm:text-sm text-gray-300 mt-1">
+                Pilih jenis akun yang sesuai dengan modal Anda. Kedua versi bekerja dengan cara dan ukuran lot yang sama.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Versi 1: Mode Akun CENT -->
+              <div id="card-version-cent" class="p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
+                <div class="space-y-3.5">
+                  <div class="flex items-center justify-between">
+                    <span class="px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
+                      MODAL KECIL • AKUN CENT
+                    </span>
+                    <span id="badge-active-cent" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold">
+                      AKTIF
+                    </span>
+                  </div>
+                  <h3 class="text-lg font-bold text-white">Mode Akun Cent</h3>
+                  <p class="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                    Cocok untuk modal mulai <strong>$20</strong>. Di dalam MT5, saldo $20 otomatis dihitung menjadi <strong>2.000 Cent</strong>.
+                  </p>
+
+                  <div class="bg-gray-950/90 rounded-xl p-4 border border-gray-800 space-y-2.5 text-xs sm:text-sm">
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Minimal Saldo</span>
+                      <span class="text-amber-400 font-bold">$20 (2.000 Cent)</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Ukuran Lot</span>
+                      <span class="text-white font-semibold">0.01 Lot</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Batas Posisi</span>
+                      <span class="text-white font-semibold">Maksimal 3 Buy & 3 Sell</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Target Sekali Tutup</span>
+                      <span class="text-emerald-400 font-bold">10 Cent</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-400">Target Profit Harian</span>
+                      <span class="text-blue-400 font-bold">100 Cent / Hari</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" onclick="selectEAVersion('CENT')" class="w-full py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-gray-950 border border-amber-500/40 font-bold text-xs sm:text-sm transition">
+                  Pilih Mode Akun Cent ($20)
+                </button>
+              </div>
+
+              <!-- Versi 2: Mode Akun STANDARD -->
+              <div id="card-version-standard" class="p-5 rounded-2xl bg-gray-900/95 border border-blue-500/50 flex flex-col justify-between gap-4">
+                <div class="space-y-3.5">
+                  <div class="flex items-center justify-between">
+                    <span class="px-3 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold">
+                      MODAL STANDAR • AKUN USD
+                    </span>
+                    <span id="badge-active-standard" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold">
+                      AKTIF
+                    </span>
+                  </div>
+                  <h3 class="text-lg font-bold text-white">Mode Akun Standard</h3>
+                  <p class="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                    Cocok untuk modal mulai <strong>$2.000</strong> dengan hitungan saldo dan profit langsung dalam satuan <strong>Dollar ($)</strong>.
+                  </p>
+
+                  <div class="bg-gray-950/90 rounded-xl p-4 border border-gray-800 space-y-2.5 text-xs sm:text-sm">
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Minimal Saldo</span>
+                      <span class="text-blue-400 font-bold">$2.000</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Ukuran Lot</span>
+                      <span class="text-white font-semibold">0.01 Lot</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Batas Posisi</span>
+                      <span class="text-white font-semibold">Maksimal 3 Buy & 3 Sell</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Target Sekali Tutup</span>
+                      <span class="text-emerald-400 font-bold">$10</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                      <span class="text-gray-400">Target Profit Harian</span>
+                      <span class="text-blue-400 font-bold">$100 / Hari</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" onclick="selectEAVersion('STANDARD')" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition">
+                  Pilih Mode Akun Standard ($2.000)
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- HALAMAN 5: BROKER (HEADWAY, XM, EXNESS + LOGO & KECOCOKAN) -->
+        <!-- ========================================================== -->
+        <section id="page-broker" class="hidden space-y-4">
+          <div class="glass-card rounded-2xl p-4 sm:p-6 space-y-5">
+            <div class="border-b border-gray-800 pb-4">
+              <h2 class="text-base sm:text-lg font-bold text-white">Daftar Broker MT5 & Spesifikasi Jenis Akun (BTCUSD)</h2>
+              <p class="text-xs text-gray-400 mt-1">
+                Perbandingan karakteristik akun <strong>Cent ($20)</strong> dan <strong>Standard ($2.000)</strong> untuk pair <strong>BTCUSD</strong> pada broker Headway, Exness, dan XM.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+
+              <!-- 1. HEADWAY -->
+              <div class="p-4 sm:p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-3.5">
+                  <div class="flex items-center gap-3.5">
+                    <!-- Logo Resmi Headway Style -->
+                    <div class="w-14 h-14 rounded-2xl bg-[#0d1526] border border-blue-500/30 flex items-center justify-center shrink-0 shadow-inner">
+                      <svg class="w-9 h-9" viewBox="0 0 40 40" fill="none">
+                        <rect width="40" height="40" rx="8" fill="#1E40AF" fill-opacity="0.2"/>
+                        <path d="M10 10V30M30 10V30M10 20H30" stroke="#3B82F6" stroke-width="4.5" stroke-linecap="round"/>
+                        <circle cx="30" cy="10" r="3" fill="#10B981"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 class="text-base sm:text-lg font-bold text-white">Headway</h3>
+                      <p class="text-xs text-gray-400 font-mono-num">Server MT5: Headway-MT5-Real / Headway-MT5-Demo</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-bold">
+                      Cocok: Mode Akun CENT ($20)
+                    </span>
+                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-bold">
+                      Cocok: Mode Akun Standard ($2.000)
+                    </span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Kebijakan Akun Cent (BTCUSD)</div>
+                    <div class="text-gray-200 font-medium mt-1">Mendukung penuh trading Crypto (<strong>BTCUSD</strong>) di Akun Cent dengan saldo dalam satuan <strong>USC (2.000 Cent = $20)</strong>.</div>
+                  </div>
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Spread & Komisi BTCUSD</div>
+                    <div class="text-gray-200 font-medium mt-1">Floating spread moderat, <strong>0% komisi</strong> pada Akun Cent & Standard, serta bebas biaya inap (Swap-Free).</div>
+                  </div>
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Kesesuaian EA SND V12.55</div>
+                    <div class="text-gray-200 font-medium mt-1">Pilihan utama jika klien ingin menggunakan <strong>Mode Akun Cent ($20)</strong> maupun <strong>Standard ($2.000)</strong>.</div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end">
+                  <button type="button" onclick="switchBroker('Headway', 'Headway-MT5-Real')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition">
+                    Pilih Broker Headway di Aplikasi
+                  </button>
+                </div>
+              </div>
+
+              <!-- 2. EXNESS -->
+              <div class="p-4 sm:p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-3.5">
+                  <div class="flex items-center gap-3.5">
+                    <!-- Logo Resmi Exness Style (Kuning-Hitam Khas Exness) -->
+                    <div class="w-14 h-14 rounded-2xl bg-[#FFDE02] flex items-center justify-center shrink-0 shadow-md">
+                      <span class="text-gray-950 font-extrabold text-sm tracking-tighter font-sans">exness</span>
+                    </div>
+                    <div>
+                      <h3 class="text-base sm:text-lg font-bold text-white">Exness</h3>
+                      <p class="text-xs text-gray-400 font-mono-num">Server MT5: Exness-MT5Real / Exness-MT5Trial</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-bold">
+                      Sangat Cocok: Mode Akun Standard ($2.000)
+                    </span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Kebijakan Akun Cent vs Standard</div>
+                    <div class="text-gray-200 font-medium mt-1">Pair <strong>BTCUSD</strong> tersedia penuh di <strong>Akun Standard / Pro</strong>. Pada Akun Standard Cent Exness, instrumen Crypto umumnya terbatas (hanya Forex & Gold).</div>
+                  </div>
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Spread & Komisi BTCUSD</div>
+                    <div class="text-gray-200 font-medium mt-1">Spread <strong>BTCUSD sangat rapat & stabil</strong> tanpa komisi di Akun Standard, serta otomatis <strong>Swap-Free</strong> untuk kripto.</div>
+                  </div>
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Kesesuaian EA SND V12.55</div>
+                    <div class="text-gray-200 font-medium mt-1">Sangat ideal untuk klien dengan <strong>Mode Akun Standard ($2.000 USD)</strong> karena spread rapat mempercepat pencapaian Target Group $10.</div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end">
+                  <button type="button" onclick="switchBroker('Exness', 'Exness-MT5Real')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-blue-600 text-gray-100 hover:text-white text-xs font-bold transition">
+                    Pilih Broker Exness di Aplikasi
+                  </button>
+                </div>
+              </div>
+
+              <!-- 3. XM -->
+              <div class="p-4 sm:p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-3.5">
+                  <div class="flex items-center gap-3.5">
+                    <!-- Logo Resmi XM Style (Merah-Putih Khas XM) -->
+                    <div class="w-14 h-14 rounded-2xl bg-[#D91C24] flex items-center justify-center shrink-0 shadow-md">
+                      <span class="text-white font-black text-lg tracking-tight font-sans">XM</span>
+                    </div>
+                    <div>
+                      <h3 class="text-base sm:text-lg font-bold text-white">XM Global</h3>
+                      <p class="text-xs text-gray-400 font-mono-num">Server MT5: XMGlobal-MT5 / XMGlobal-MT5 2</p>
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-1.5">
+                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-bold">
+                      Cocok: Mode Akun Standard ($2.000)
+                    </span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Kebijakan Jenis Akun</div>
+                    <div class="text-gray-200 font-medium mt-1">XM tidak menggunakan satuan saldo USC (2.000 Cent), melainkan sistem <strong>Micro & Standard</strong> dalam satuan mata uang USD langsung.</div>
+                  </div>
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Spread & Komisi BTCUSD</div>
+                    <div class="text-gray-200 font-medium mt-1">Tersedia di akun <strong>Standard & Ultra Low</strong> tanpa komisi tambahan, eksekusi cepat tanpa <em>requote</em>.</div>
+                  </div>
+                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
+                    <div class="text-gray-400 text-[11px]">Kesesuaian EA SND V12.55</div>
+                    <div class="text-gray-200 font-medium mt-1">Cocok digunakan untuk <strong>Mode Akun Standard ($2.000 USD)</strong> karena rumus saldo acuan EA membaca satuan USD penuh.</div>
+                  </div>
+                </div>
+
+                <div class="flex justify-end">
+                  <button type="button" onclick="switchBroker('XM', 'XMGlobal-MT5 2')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-blue-600 text-gray-100 hover:text-white text-xs font-bold transition">
+                    Pilih Broker XM di Aplikasi
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- HALAMAN 6: PROFIL PENGGUNA (TERPISAH DARI BROKER)          -->
+        <!-- ========================================================== -->
+        <section id="page-profile" class="hidden space-y-4">
+          <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5">
+            <div class="flex items-center gap-4 border-b border-gray-800 pb-4">
+              <div class="w-16 h-16 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xl">
+                DT
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 id="profile-display-name" class="text-lg font-bold text-white">Demo Trader (Publik)</h2>
+                  <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">VERSI DEMO</span>
+                </div>
+                <p id="account-subtitle" class="text-xs text-gray-400 font-mono-num mt-0.5">Login MT5: #88504219</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Nama Tampilan Trader</label>
+                <input id="profile-name-input" type="text" value="Demo Trader (Publik)" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-400 mb-1">Robot EA Aktif</label>
+                <input type="text" value="SND V12.55 Balance Surplus (BTCUSD)" disabled class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3.5 py-2.5 text-sm text-gray-400 font-mono-num" />
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-gray-800">
+              <button type="button" onclick="saveUserProfile()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition">
+                Simpan Profil
+              </button>
+              <button type="button" onclick="handleLogout()" class="px-5 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/40 text-xs font-bold transition">
+                Logout Akun
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================== -->
+        <!-- HALAMAN 7: PENGATURAN APLIKASI & DARURAT                   -->
+        <!-- ========================================================== -->
+        <section id="page-settings" class="hidden space-y-4">
+          <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-5">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-white">Pengaturan Aplikasi & Kontrol Darurat</h2>
+              <p class="text-xs text-gray-400 mt-0.5">Kelola notifikasi eksekusi, mode koneksi MT5, dan tombol darurat.</p>
+            </div>
+
+            <div class="space-y-3 pt-2 border-t border-gray-800">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs sm:text-sm font-semibold text-white">Notifikasi Eksekusi BUY / SELL & CLOSED</div>
+                  <div class="text-[11px] text-gray-400">Munculkan alert otomatis setiap ada posisi baru atau close</div>
+                </div>
+                <input id="setting-notif-toggle" type="checkbox" checked onchange="toggleNotifSetting(this.checked)" class="w-5 h-5 accent-blue-600 rounded cursor-pointer" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gray-800">
+              <button type="button" id="toggle-mode-btn" onclick="toggleSimulationMode()" class="w-full py-3 px-4 rounded-xl text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-100 border border-gray-700 transition flex items-center justify-center gap-2">
+                Cek Koneksi MT5 Asli
+              </button>
+
+              <button type="button" onclick="closeAllPositions(-1, 'SEMUA EA')" class="w-full py-3 px-4 rounded-xl text-xs font-bold bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/40 transition flex items-center justify-center gap-2">
+                Panic Close All Posisi
+              </button>
+            </div>
+
+            <div class="pt-3 border-t border-gray-800 space-y-2 text-xs">
+              <div class="text-gray-400 font-medium">Folder Jembatan MT5 (<code class="text-amber-400">FILE_COMMON</code>):</div>
+              <div id="bridge-path-display" class="p-3 rounded-xl bg-gray-950 border border-gray-800 font-mono-num text-[11px] text-gray-300 break-all"></div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ================================================================== -->
+  <!-- BOTTOM NAVIGATION BAR (Khusus Layar HP / Mobile)                   -->
+  <!-- ================================================================== -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#0b101b]/95 backdrop-blur-md border-t border-gray-800">
+    <div class="grid grid-cols-4 h-16">
+      <button type="button" onclick="switchPage('overview')" id="bot-nav-overview" class="flex flex-col items-center justify-center gap-1 text-[11px] font-bold bottom-nav-active">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        </svg>
+        <span>Ringkasan</span>
+      </button>
+
+      <button type="button" onclick="switchPage('ea')" id="bot-nav-ea" class="flex flex-col items-center justify-center gap-1 text-[11px] font-semibold text-gray-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+        </svg>
+        <span>Kontrol EA</span>
+      </button>
+
+      <button type="button" onclick="switchPage('terminal')" id="bot-nav-terminal" class="relative flex flex-col items-center justify-center gap-1 text-[11px] font-semibold text-gray-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        <span>Terminal</span>
+      </button>
+
+      <button type="button" onclick="switchPage('broker')" id="bot-nav-broker" class="flex flex-col items-center justify-center gap-1 text-[11px] font-semibold text-gray-400">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+        <span>Broker</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal: Rename EA Magic Label -->
+  <div id="rename-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-gray-900 border border-gray-700 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+      <h3 class="text-base font-bold text-white">Ubah Nama EA untuk Magic #<span id="rename-magic-id"></span></h3>
+      <p class="text-xs text-gray-400 mt-1">Nama ini akan disimpan dan ditampilkan di kartu analitik EA.</p>
+      <input id="rename-input" type="text" placeholder="Contoh: SND V12.55 Balance Surplus" class="mt-4 w-full bg-gray-950 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" onclick="closeRenameModal()" class="px-4 py-2 rounded-xl text-xs font-medium bg-gray-800 text-gray-300 hover:bg-gray-700">Batal</button>
+        <button type="button" onclick="saveRenameModal()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 text-white hover:bg-blue-500">Simpan Nama</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+let latestState = null;
+let selectedMagicFilter = "ALL";
+let currentRenamingMagic = null;
+let equityChart = null;
+let ws = null;
+let currentPage = "overview";
+let activeEAVersion = localStorage.getItem("eamon_ea_version") || "STANDARD";
+let activeBrokerName = localStorage.getItem("eamon_broker_name") || "Headway";
+let liveBtcPrice = 80810.05;
+let standaloneOpenPrice = 80795.00;
+
+let knownPositionTickets = null;
+let knownDealTickets = null;
+let notificationsEnabled = true;
+let unreadNotifCount = 3;
+let notificationsList = [
+  {
+    id: 1,
+    type: "CLOSE",
+    title: "TARGET HARIAN 100.00 TERCAPAI (+101.35)",
+    desc: "SND V12.55 (BTCUSD) otomatis LOCKED sampai pergantian hari jam 00:00.",
+    time: "14:42:18",
+  },
+  {
+    id: 2,
+    type: "CLOSE",
+    title: "CLOSED BUY • BTCUSD (+10.35)",
+    desc: "Target Group 10.00 tercapai (0.02 Lot) — posisi ditutup otomatis.",
+    time: "14:42:18",
+  },
+  {
+    id: 3,
+    type: "CLOSE",
+    title: "CLOSED BUY • BTCUSD (+10.10)",
+    desc: "Target Group 10.00 tercapai (0.01 Lot) — posisi ditutup otomatis.",
+    time: "13:55:04",
+  },
+];
+
+const PAGE_TITLES = {
+  overview: "Ringkasan Akun",
+  ea: "Performa & Kontrol EA",
+  terminal: "Terminal Transaksi",
+  eaversion: "Pilihan EA Versi",
+  broker: "Daftar Broker MT5",
+  profile: "Profil Pengguna",
+  settings: "Pengaturan Aplikasi",
+};
+
+// ============================================================================
+// REAL-TIME BTCUSD LIVE PRICE FETCHER (Langsung dari Binance Vision & CoinGecko)
+// ============================================================================
+async function fetchLiveBtcPriceClient() {
+  try {
+    const res = await fetch("https://data-api.binance.vision/api/v3/ticker/price?symbol=BTCUSDT");
+    if (res.ok) {
+      const data = await res.json();
+      const p = Number(data.price);
+      if (p > 1000) {
+        liveBtcPrice = Number(p.toFixed(2));
+        updateHeaderBtcBadge(liveBtcPrice);
+        return liveBtcPrice;
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const res2 = await fetch(
+      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&precision=2"
+    );
+    if (res2.ok) {
+      const data2 = await res2.json();
+      const p2 = Number(data2?.bitcoin?.usd);
+      if (p2 > 1000) {
+        liveBtcPrice = Number(p2.toFixed(2));
+        updateHeaderBtcBadge(liveBtcPrice);
+        return liveBtcPrice;
+      }
+    }
+  } catch (e) {}
+
+  return liveBtcPrice;
+}
+
+function updateHeaderBtcBadge(price) {
+  const el = document.getElementById("header-btc-price");
+  if (el && price > 0) {
+    el.textContent = `$${Number(price).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+}
+
+// ============================================================================
+// STANDALONE FALLBACK STATE (Agar bisa di-host di GitHub Pages / Vercel 24 Jam)
+// ============================================================================
+function buildStandaloneState() {
+  const isCent = activeEAVersion === "CENT";
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  const srvMap = {
+    Headway: "Headway-MT5-Real",
+    Exness: "Exness-MT5Real",
+    XM: "XMGlobal-MT5 2",
+  };
+
+  if (Math.abs(standaloneOpenPrice - liveBtcPrice) > 1200) {
+    standaloneOpenPrice = Number((liveBtcPrice - 14.5).toFixed(2));
+  }
+  const floatProfit = Number(((liveBtcPrice - standaloneOpenPrice) * 0.01 - 0.05).toFixed(2));
+  const baseBal = 2101.35;
+  const curEq = Number((baseBal + floatProfit).toFixed(2));
+
+  return {
+    timestamp: `${now.toISOString().slice(0, 10)} ${timeStr}`,
+    connection: {
+      mode: "SIMULATION",
+      connected_to_mt5: false,
+      force_mock: false,
+      common_bridge_dir: "C:\\Users\\VPS\\AppData\\Roaming\\MetaQuotes\\Terminal\\Common\\Files\\EAMonitor",
+    },
+    account: {
+      login: 88504219,
+      name: "Ibnu - SND V12.55 (BTCUSD)",
+      broker: activeBrokerName,
+      server: srvMap[activeBrokerName] || "Headway-MT5-Real",
+      currency: isCent ? "USC (Cent)" : "USD",
+      ea_version: activeEAVersion,
+      leverage: 500,
+      balance: baseBal,
+      equity: curEq,
+      profit: floatProfit,
+      margin: 6.8,
+      margin_free: Number((curEq - 6.8).toFixed(2)),
+      margin_level: Number(((curEq / 6.8) * 100).toFixed(1)),
+      btc_price: liveBtcPrice,
+      mode: "SIMULATION",
+    },
+    metrics: {
+      balance: baseBal,
+      equity: curEq,
+      floating_pnl: floatProfit,
+      floating_pct: Number(((floatProfit / baseBal) * 100).toFixed(2)),
+      floating_dd_usd: floatProfit < 0 ? Math.abs(floatProfit) : 0.0,
+      floating_dd_pct: floatProfit < 0 ? Number(((Math.abs(floatProfit) / baseBal) * 100).toFixed(2)) : 0.0,
+      peak_equity: Math.max(baseBal, curEq),
+      peak_dd_usd: 0.0,
+      peak_dd_pct: 0.0,
+      margin: 6.8,
+      free_margin: Number((curEq - 6.8).toFixed(2)),
+      margin_level: Number(((curEq / 6.8) * 100).toFixed(1)),
+      open_positions_count: 1,
+      total_open_lots: 0.01,
+      today_realized_pnl: 101.35,
+      today_realized_pct: 5.07,
+      today_net_pnl: Number((101.35 + floatProfit).toFixed(2)),
+      total_realized_pnl: 101.35,
+    },
+    magic_breakdown: [
+      {
+        magic: 1255,
+        name: isCent
+          ? "SND V12.55 Cent Edition (BTCUSDc)"
+          : "SND V12.55 Standard Edition (BTCUSD)",
+        status: "ACTIVE",
+        enabled: true,
+        symbol: isCent ? "BTCUSDc" : "BTCUSD",
+        timeframe: "M5",
+        daily_limit: 100.0,
+        group_target: 10.0,
+        start_balance: 2101.35,
+        bridge_daily_profit: 0.0,
+        max_dir_pos: 3,
+        open_positions: 1,
+        buy_positions: 1,
+        sell_positions: 0,
+        open_lots: 0.01,
+        floating_pnl: floatProfit,
+        floating_dd_pct: 0.0,
+        closed_trades: 12,
+        win_trades: 10,
+        loss_trades: 2,
+        win_rate: 83.3,
+        profit_factor: 33.69,
+        realized_pnl: 101.35,
+        today_pnl: floatProfit,
+        total_net_pnl: Number((101.35 + floatProfit).toFixed(2)),
+      },
+    ],
+    positions: [
+      {
+        ticket: 401299,
+        symbol: isCent ? "BTCUSDc" : "BTCUSD",
+        type: "BUY",
+        volume: 0.01,
+        price_open: standaloneOpenPrice,
+        price_current: liveBtcPrice,
+        sl: 0.0,
+        tp: 0.0,
+        swap: 0.0,
+        commission: -0.05,
+        profit: Number(((liveBtcPrice - standaloneOpenPrice) * 0.01).toFixed(2)),
+        net_profit: floatProfit,
+        magic: 1255,
+        comment: "Init_B",
+        time: Math.floor(Date.now() / 1000) - 300,
+      },
+    ],
+    recent_deals: [
+      { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.45, net_profit: 10.35, magic: 1255, time: 1761378138 },
+      { ticket: 401261, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.15, net_profit: 10.10, magic: 1255, time: 1761375304 },
+      { ticket: 401260, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.55, net_profit: 10.45, magic: 1255, time: 1761370721 },
+      { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 11.30, net_profit: 11.20, magic: 1255, time: 1761366015 },
+      { ticket: 401258, symbol: "BTCUSD", type: "SELL", volume: 0.01, profit: -1.00, net_profit: -1.05, magic: 1255, time: 1761366014 },
+      { ticket: 401257, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.30, net_profit: 10.20, magic: 1255, time: 1761360513 },
+      { ticket: 401256, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: 1761354922 },
+      { ticket: 401255, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.10, net_profit: 10.05, magic: 1255, time: 1761349210 },
+      { ticket: 401254, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 12.50, net_profit: 12.40, magic: 1255, time: 1761340369 },
+      { ticket: 401253, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: -2.10, net_profit: -2.15, magic: 1255, time: 1761340368 },
+      { ticket: 401252, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: 1761332719 },
+      { ticket: 401251, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: 1761328087 },
+    ],
+    equity_history: [
+      { time: "00:00", balance: 2000.0, equity: 2000.0 },
+      { time: "00:48", balance: 2010.15, equity: 2010.15 },
+      { time: "02:05", balance: 2020.30, equity: 2020.30 },
+      { time: "04:12", balance: 2030.55, equity: 2030.55 },
+      { time: "06:40", balance: 2040.60, equity: 2040.60 },
+      { time: "08:15", balance: 2051.10, equity: 2051.10 },
+      { time: "09:48", balance: 2061.30, equity: 2061.30 },
+      { time: "11:20", balance: 2071.45, equity: 2071.45 },
+      { time: "12:38", balance: 2081.90, equity: 2081.90 },
+      { time: "13:55", balance: 2092.00, equity: 2092.00 },
+      { time: "14:42", balance: 2101.35, equity: 2101.35 },
+    ],
+  };
+}
+
+function openMobileSidebar() {
+  const sb = document.getElementById("main-sidebar");
+  const bd = document.getElementById("sidebar-backdrop");
+  if (sb) sb.classList.remove("-translate-x-full");
+  if (bd) bd.classList.remove("hidden");
+}
+
+function closeMobileSidebar() {
+  const sb = document.getElementById("main-sidebar");
+  const bd = document.getElementById("sidebar-backdrop");
+  if (sb) sb.classList.add("-translate-x-full");
+  if (bd) bd.classList.add("hidden");
+}
+
+function switchPage(pageName) {
+  currentPage = pageName;
+  const pages = ["overview", "ea", "terminal", "eaversion", "broker", "profile", "settings"];
+
+  for (const p of pages) {
+    const sec = document.getElementById(`page-${p}`);
+    if (sec) {
+      if (p === pageName) sec.classList.remove("hidden");
+      else sec.classList.add("hidden");
+    }
+
+    const sideBtn = document.getElementById(`side-nav-${p}`);
+    if (sideBtn) {
+      if (p === pageName) {
+        sideBtn.className =
+          "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition nav-item-active";
+      } else {
+        sideBtn.className =
+          "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition";
+      }
+    }
+
+    const botBtn = document.getElementById(`bot-nav-${p}`);
+    if (botBtn) {
+      if (p === pageName) {
+        botBtn.className =
+          "flex flex-col items-center justify-center gap-1 text-[11px] font-bold bottom-nav-active";
+      } else {
+        botBtn.className =
+          "flex flex-col items-center justify-center gap-1 text-[11px] font-semibold text-gray-400";
+      }
+    }
+  }
+
+  const titleEl = document.getElementById("page-header-title");
+  if (titleEl) titleEl.textContent = PAGE_TITLES[pageName] || "MT5 EA Monitor";
+
+  closeMobileSidebar();
+
+  if (pageName === "overview" && equityChart) {
+    setTimeout(() => equityChart.resize(), 60);
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+// ============================================================================
+// PILIH EA VERSI (CENT $20 vs STANDARD $2000) & BROKER
+// ============================================================================
+async function selectEAVersion(mode) {
+  const cleanMode = mode === "CENT" ? "CENT" : "STANDARD";
+  activeEAVersion = cleanMode;
+  localStorage.setItem("eamon_ea_version", cleanMode);
+
+  try {
+    const res = await fetch("/api/ea/version", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version_mode: cleanMode }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      showToast(data.message);
+      if (data.state) updateDashboard(data.state);
+      return;
+    }
+  } catch (e) {}
+
+  // Fallback jika berjalan di Vercel / Standalone
+  updateDashboard(buildStandaloneState());
+  showToast(
+    cleanMode === "CENT"
+      ? "Mode EA diubah ke Akun CENT (Min. Balance $20 / 2.000 Cent)."
+      : "Mode EA diubah ke Akun STANDARD (Min. Balance $2.000 USD)."
+  );
+}
+
+async function switchBroker(brokerName, serverName = "") {
+  activeBrokerName = brokerName;
+  localStorage.setItem("eamon_broker_name", brokerName);
+  try {
+    const res = await fetch("/api/broker/select", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ broker: brokerName, server: serverName }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      showToast(data.message || `Broker diubah ke ${brokerName}`);
+      if (data.state) updateDashboard(data.state);
+      return;
+    }
+  } catch (e) {}
+
+  updateDashboard(buildStandaloneState());
+  showToast(`Broker aktif diatur ke ${brokerName}.`);
+}
+
+function fillDemoAccount(accName) {
+  const userInp = document.getElementById("login-username");
+  const passInp = document.getElementById("login-password");
+  if (userInp) userInp.value = accName;
+  if (passInp) passInp.value = "1255";
+}
+
+function handleLogin(e) {
+  if (e) e.preventDefault();
+  const userInp = document.getElementById("login-username");
+  const brokerSel = document.getElementById("login-broker");
+  const verSel = document.getElementById("login-ea-version");
+  const rawName = userInp && userInp.value.trim() ? userInp.value.trim() : "demo_trader";
+  const chosenBroker = brokerSel ? brokerSel.value : "Headway";
+  const chosenVer = verSel ? verSel.value : "CENT";
+  const displayName =
+    rawName === "demo_trader"
+      ? "Demo Trader (Publik)"
+      : rawName === "ibnu_trader"
+      ? "Ibnu Trader (Owner)"
+      : rawName;
+  localStorage.setItem("eamon_logged_in", "true");
+  localStorage.setItem("eamon_user_name", displayName);
+  applyUserProfile(displayName);
+  switchBroker(chosenBroker);
+  selectEAVersion(chosenVer);
+  const loginScr = document.getElementById("login-screen");
+  if (loginScr) loginScr.classList.add("hidden");
+  showToast(`Login berhasil sebagai ${displayName}!`);
+}
+
+function handleLogout() {
+  closeMobileSidebar();
+  localStorage.setItem("eamon_logged_in", "false");
+  const loginScr = document.getElementById("login-screen");
+  if (loginScr) loginScr.classList.remove("hidden");
+}
+
+function saveUserProfile() {
+  const inp = document.getElementById("profile-name-input");
+  const name = inp && inp.value.trim() ? inp.value.trim() : "Demo Trader";
+  localStorage.setItem("eamon_user_name", name);
+  applyUserProfile(name);
+  showToast("Profil pengguna berhasil diperbarui.");
+}
+
+function applyUserProfile(name) {
+  const clean = name || "Demo Trader";
+  const initials = clean.slice(0, 2).toUpperCase();
+  const sName = document.getElementById("sidebar-user-name");
+  const sAv = document.getElementById("sidebar-user-avatar");
+  const pName = document.getElementById("profile-display-name");
+  const pInp = document.getElementById("profile-name-input");
+  if (sName) sName.textContent = clean;
+  if (sAv) sAv.textContent = initials;
+  if (pName) pName.textContent = clean;
+  if (pInp) pInp.value = clean;
+}
+
+// ============================================================================
+// SISTEM NOTIFIKASI EKSEKUSI BUY / SELL / CLOSED
+// ============================================================================
+function toggleNotifSetting(checked) {
+  notificationsEnabled = Boolean(checked);
+  showToast(
+    notificationsEnabled
+      ? "Notifikasi eksekusi BUY/SELL & CLOSED diaktifkan."
+      : "Notifikasi eksekusi dinonaktifkan."
+  );
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById("notif-panel");
+  const backdrop = document.getElementById("notif-backdrop");
+  if (!panel) return;
+  const isHidden = panel.classList.contains("hidden");
+  if (isHidden) {
+    panel.classList.remove("hidden");
+    if (backdrop) backdrop.classList.remove("hidden");
+    unreadNotifCount = 0;
+    renderNotifications();
+  } else {
+    panel.classList.add("hidden");
+    if (backdrop) backdrop.classList.add("hidden");
+  }
+}
+
+function clearNotifications() {
+  notificationsList = [];
+  unreadNotifCount = 0;
+  renderNotifications();
+}
+
+function addNotification(type, title, desc) {
+  if (!notificationsEnabled) return;
+  const nowStr = new Date().toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  notificationsList.unshift({
+    id: Date.now() + Math.random(),
+    type,
+    title,
+    desc,
+    time: nowStr,
+  });
+  if (notificationsList.length > 30) notificationsList.pop();
+  unreadNotifCount += 1;
+  renderNotifications();
+  showToast(`🔔 ${title}`);
+}
+
+function renderNotifications() {
+  const badge = document.getElementById("notif-badge");
+  const listEl = document.getElementById("notif-list");
+  if (badge) {
+    if (unreadNotifCount > 0) {
+      badge.textContent = unreadNotifCount > 9 ? "9+" : String(unreadNotifCount);
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+  }
+  if (!listEl) return;
+  if (!notificationsList.length) {
+    listEl.innerHTML = `<div class="text-center py-6 text-xs text-sky-200/70">Belum ada notifikasi eksekusi baru.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = notificationsList
+    .map((n) => {
+      const colorBadge =
+        n.type === "BUY"
+          ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-gray-950">BUY</span>`
+          : n.type === "SELL"
+          ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white">SELL</span>`
+          : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-400 text-gray-950">CLOSED</span>`;
+      const leftBorder =
+        n.type === "BUY"
+          ? "border-l-4 border-l-emerald-400"
+          : n.type === "SELL"
+          ? "border-l-4 border-l-rose-400"
+          : "border-l-4 border-l-sky-400";
+      return `
+      <div class="p-3 rounded-xl bg-[#1a2c56] border border-sky-400/30 ${leftBorder} space-y-1 shadow-md">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            ${colorBadge}
+            <span class="text-xs font-bold text-white truncate">${n.title}</span>
+          </div>
+          <span class="text-[10px] text-sky-200 font-mono-num shrink-0">${n.time}</span>
+        </div>
+        <p class="text-[11px] text-sky-100/90 font-mono-num">${n.desc}</p>
+      </div>`;
+    })
+    .join("");
+}
+
+function detectTradeEvents(state) {
+  const positions = state.positions || [];
+  const deals = state.recent_deals || [];
+
+  const curPosTickets = new Set(positions.map((p) => Number(p.ticket)));
+  const curDealTickets = new Set(deals.map((d) => Number(d.ticket)));
+
+  if (knownPositionTickets !== null && knownDealTickets !== null) {
+    for (const p of positions) {
+      const tk = Number(p.ticket);
+      if (!knownPositionTickets.has(tk)) {
+        const t = String(p.type).toUpperCase();
+        addNotification(
+          t,
+          `OPEN ${t} • ${p.symbol} (${Number(p.volume).toFixed(2)} Lot)`,
+          `Ticket #${tk} | Magic #${p.magic} @ ${formatPrice(p.symbol, p.price_open)}`
+        );
+      }
+    }
+
+    for (const d of deals) {
+      const tk = Number(d.ticket);
+      if (!knownDealTickets.has(tk)) {
+        const net = Number(d.net_profit || d.profit || 0);
+        addNotification(
+          "CLOSE",
+          `CLOSED ${d.type} • ${d.symbol} (${formatAmount(net, true)})`,
+          `Deal #${tk} | Magic #${d.magic} • Lot ${Number(d.volume).toFixed(2)}`
+        );
+      }
+    }
+  }
+
+  knownPositionTickets = curPosTickets;
+  knownDealTickets = curDealTickets;
+}
+
+function formatAmount(val, showSign = false) {
+  const num = Number(val || 0);
+  const isCent = activeEAVersion === "CENT";
+  const absStr = Math.abs(num).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  if (isCent) {
+    if (num < 0) return `-${absStr} ¢`;
+    if (showSign && num > 0) return `+${absStr} ¢`;
+    return `${absStr} ¢`;
+  }
+  if (num < 0) return `-$${absStr}`;
+  if (showSign && num > 0) return `+$${absStr}`;
+  return `$${absStr}`;
+}
+
+function formatPrice(symbol, price) {
+  const p = Number(price || 0);
+  if (!p) return "-";
+  const s = String(symbol || "").toUpperCase();
+  if (s.includes("XAU") || s.includes("BTC")) return p.toFixed(2);
+  if (s.includes("JPY")) return p.toFixed(3);
+  return p.toFixed(5);
+}
+
+function formatTime(unixSec) {
+  if (!unixSec) return "-";
+  const d = new Date(Number(unixSec) * 1000);
+  return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+function showToast(msg) {
+  const banner = document.getElementById("toast-banner");
+  const text = document.getElementById("toast-text");
+  if (!banner || !text) return;
+  text.textContent = msg;
+  banner.classList.remove("hidden");
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => {
+    banner.classList.add("hidden");
+  }, 3500);
+}
+
+function initEquityChart() {
+  const ctx = document.getElementById("equityChart");
+  if (!ctx) return;
+
+  equityChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: [],
+      datasets: [
+        {
+          label: "Equity Real-Time",
+          data: [],
+          borderColor: "#10b981",
+          backgroundColor: "rgba(16, 185, 129, 0.12)",
+          borderWidth: 2.2,
+          pointRadius: 2,
+          tension: 0.3,
+          fill: true,
+        },
+        {
+          label: "Balance Dasar",
+          data: [],
+          borderColor: "#6366f1",
+          borderDash: [5, 5],
+          borderWidth: 1.6,
+          pointRadius: 0,
+          tension: 0.1,
+          fill: false,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 250 },
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: "#9ca3af", font: { family: "Inter", size: 11 } },
+        },
+        tooltip: {
+          backgroundColor: "#111827",
+          borderColor: "#374151",
+          borderWidth: 1,
+          titleColor: "#f3f4f6",
+          bodyColor: "#e5e7eb",
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color: "#6b7280", maxTicksLimit: 6, font: { family: "JetBrains Mono", size: 10 } },
+          grid: { color: "rgba(55, 65, 81, 0.25)" },
+        },
+        y: {
+          ticks: {
+            color: "#9ca3af",
+            font: { family: "JetBrains Mono", size: 11 },
+            callback: (v) => Number(v).toLocaleString("en-US"),
+          },
+          grid: { color: "rgba(55, 65, 81, 0.25)" },
+        },
+      },
+    },
+  });
+}
+
+function updateEAVersionUI(versionMode) {
+  activeEAVersion = versionMode === "CENT" ? "CENT" : "STANDARD";
+  const isCent = activeEAVersion === "CENT";
+
+  const hdrVer = document.getElementById("header-eaversion-badge");
+  const sideVer = document.getElementById("side-eaversion-badge");
+  const sideLbl = document.getElementById("sidebar-version-label");
+  const balSub = document.getElementById("kpi-balance-sub");
+  const cardCent = document.getElementById("card-version-cent");
+  const cardStd = document.getElementById("card-version-standard");
+  const badgeCent = document.getElementById("badge-active-cent");
+  const badgeStd = document.getElementById("badge-active-standard");
+
+  if (hdrVer) {
+    hdrVer.textContent = isCent ? "AKUN CENT ($20)" : "STANDARD ($2000)";
+    hdrVer.className = isCent
+      ? "px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0"
+      : "px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0";
+  }
+  if (sideVer) {
+    sideVer.textContent = isCent ? "CENT" : "STD";
+    sideVer.className = isCent
+      ? "px-2 py-0.5 text-[10px] rounded bg-amber-500/15 text-amber-400 font-mono-num font-bold"
+      : "px-2 py-0.5 text-[10px] rounded bg-emerald-500/15 text-emerald-400 font-mono-num font-bold";
+  }
+  if (sideLbl) {
+    sideLbl.textContent = isCent ? "Mode: Akun CENT ($20)" : "Mode: Akun Standard ($2000)";
+  }
+  if (balSub) {
+    balSub.textContent = isCent
+      ? "Mode Akun CENT • 2,101.35 USC Setara ≈ $21.01 USD (Modal Awal $20)"
+      : "Mode Akun STANDARD • Saldo Acuan $2,000.00 USD";
+  }
+  if (cardCent && cardStd && badgeCent && badgeStd) {
+    if (isCent) {
+      cardCent.className = "p-5 rounded-2xl bg-gray-900/95 border-2 border-amber-500/60 flex flex-col justify-between gap-4";
+      cardStd.className = "p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4";
+      badgeCent.classList.remove("hidden");
+      badgeStd.classList.add("hidden");
+    } else {
+      cardStd.className = "p-5 rounded-2xl bg-gray-900/95 border-2 border-blue-500/60 flex flex-col justify-between gap-4";
+      cardCent.className = "p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4";
+      badgeStd.classList.remove("hidden");
+      badgeCent.classList.add("hidden");
+    }
+  }
+}
+
+function updateDashboard(state) {
+  if (!state) return;
+  detectTradeEvents(state);
+  latestState = state;
+
+  const acc = state.account || {};
+  const m = state.metrics || {};
+  const conn = state.connection || {};
+
+  if (acc.btc_price && Number(acc.btc_price) > 1000) {
+    liveBtcPrice = Number(acc.btc_price);
+    updateHeaderBtcBadge(liveBtcPrice);
+  }
+
+  if (acc.ea_version) {
+    updateEAVersionUI(acc.ea_version);
+  } else {
+    updateEAVersionUI(activeEAVersion);
+  }
+
+  const bridgeEl = document.getElementById("bridge-path-display");
+  if (bridgeEl) bridgeEl.textContent = conn.common_bridge_dir || "";
+
+  const badge = document.getElementById("connection-badge");
+  const modeText = document.getElementById("connection-mode-text");
+  const toggleBtn = document.getElementById("toggle-mode-btn");
+  if (conn.connected_to_mt5) {
+    badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0";
+    modeText.textContent = "LIVE MT5";
+    if (toggleBtn) toggleBtn.textContent = "Beralih ke Mode Simulasi";
+  } else {
+    badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0";
+    modeText.textContent = "MODE SIMULASI";
+    if (toggleBtn) toggleBtn.textContent = "Cek Koneksi MT5 Asli";
+  }
+
+  const accSub = document.getElementById("account-subtitle");
+  if (accSub) accSub.textContent = `Login MT5: #${acc.login || "-"} • ${acc.server || "-"}`;
+
+  const resolvedBroker = acc.broker || (acc.server ? acc.server.split("-")[0] : activeBrokerName);
+  const brokerBadge = document.getElementById("header-broker-badge");
+  const sideBrokerBadge = document.getElementById("side-broker-badge");
+  if (brokerBadge) brokerBadge.textContent = resolvedBroker;
+  if (sideBrokerBadge) sideBrokerBadge.textContent = resolvedBroker;
+
+  const sidePosBadge = document.getElementById("side-pos-badge");
+  if (sidePosBadge) sidePosBadge.textContent = m.open_positions_count || 0;
+
+  // 1. Balance & Today Realized
+  document.getElementById("kpi-currency").textContent = activeEAVersion === "CENT" ? "USC (Cent)" : (acc.currency || "USD");
+  document.getElementById("kpi-balance").textContent = formatAmount(m.balance);
+  const todayEl = document.getElementById("kpi-today-realized");
+  const todaySign = m.today_realized_pnl >= 0 ? "+" : "";
+  todayEl.textContent = `${formatAmount(m.today_realized_pnl, true)} (${todaySign}${m.today_realized_pct}%)`;
+  todayEl.className = `font-mono-num font-bold ${m.today_realized_pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`;
+
+  // 2. Equity Real-Time (Kiri)
+  document.getElementById("kpi-equity").textContent = formatAmount(m.equity);
+  document.getElementById("kpi-peak-equity").textContent = formatAmount(m.peak_equity);
+
+  // 2B. Floating PnL (Kanan)
+  const floatEl = document.getElementById("kpi-floating-pnl");
+  floatEl.textContent = formatAmount(m.floating_pnl, true);
+  floatEl.className = `mt-2 text-xl sm:text-2xl font-bold font-mono-num truncate ${m.floating_pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`;
+
+  const floatPctEl = document.getElementById("kpi-floating-pct");
+  const fSign = m.floating_pct >= 0 ? "+" : "";
+  floatPctEl.textContent = `${fSign}${m.floating_pct}%`;
+  floatPctEl.className = `px-1.5 py-0.5 text-[10px] rounded font-mono-num font-semibold ${
+    m.floating_pnl >= 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"
+  }`;
+  document.getElementById("kpi-open-summary").textContent =
+    `${m.open_positions_count || 0} Pos (${Number(m.total_open_lots || 0).toFixed(2)} Lot)`;
+
+  // 3. Margin Level
+  document.getElementById("kpi-leverage").textContent = `1:${acc.leverage || 500}`;
+  document.getElementById("kpi-margin-level").textContent =
+    m.margin_level > 0 ? `${Number(m.margin_level).toLocaleString("en-US", { maximumFractionDigits: 1 })}%` : "∞ (Tanpa Margin)";
+  document.getElementById("kpi-free-margin").textContent = formatAmount(m.free_margin);
+
+  // 4. Drawdown Saat Ini
+  const activeDdPct = Math.max(Number(m.floating_dd_pct || 0), Number(m.peak_dd_pct || 0));
+  const activeDdUsd = Math.max(Number(m.floating_dd_usd || 0), Number(m.peak_dd_usd || 0));
+  document.getElementById("kpi-dd-pct").textContent = `${activeDdPct.toFixed(2)}%`;
+  document.getElementById("kpi-dd-usd").textContent = `(${formatAmount(activeDdUsd)})`;
+  document.getElementById("kpi-float-dd").textContent = `${Number(m.floating_dd_pct || 0).toFixed(2)}%`;
+  document.getElementById("kpi-peak-dd").textContent = `${Number(m.peak_dd_pct || 0).toFixed(2)}%`;
+
+  const ddBar = document.getElementById("kpi-dd-bar");
+  const ddStatus = document.getElementById("kpi-dd-status");
+  const barWidth = Math.min(100, Math.max(3, activeDdPct * 5));
+  ddBar.style.width = `${barWidth}%`;
+  if (activeDdPct < 3.0) {
+    ddBar.className = "h-full rounded-full bg-emerald-500 transition-all duration-300";
+    ddStatus.className = "px-2.5 py-0.5 text-xs rounded-md bg-emerald-500/15 text-emerald-400 font-semibold";
+    ddStatus.textContent = "RENDAH / AMAN";
+  } else if (activeDdPct < 8.0) {
+    ddBar.className = "h-full rounded-full bg-amber-500 transition-all duration-300";
+    ddStatus.className = "px-2.5 py-0.5 text-xs rounded-md bg-amber-500/15 text-amber-400 font-semibold";
+    ddStatus.textContent = "WASPADA";
+  } else {
+    ddBar.className = "h-full rounded-full bg-rose-500 transition-all duration-300";
+    ddStatus.className = "px-2.5 py-0.5 text-xs rounded-md bg-rose-500/15 text-rose-400 font-semibold";
+    ddStatus.textContent = "TINGGI / BAHAYA";
+  }
+
+  renderMagicBreakdown(state.magic_breakdown || []);
+  updateMagicFilterDropdown(state.magic_breakdown || []);
+  renderOpenPositions(state.positions || []);
+  renderClosedDeals(state.recent_deals || []);
+
+  if (equityChart && Array.isArray(state.equity_history)) {
+    equityChart.data.labels = state.equity_history.map((pt) => pt.time);
+    equityChart.data.datasets[0].data = state.equity_history.map((pt) => pt.equity);
+    equityChart.data.datasets[1].data = state.equity_history.map((pt) => pt.balance);
+    equityChart.update("none");
+  }
+}
+
+function renderMagicBreakdown(magicList) {
+  const container = document.getElementById("magic-cards-container");
+  const totalRealizedEl = document.getElementById("total-realized-30d");
+  const totalRealized = magicList.reduce((acc, item) => acc + Number(item.realized_pnl || 0), 0);
+  if (totalRealizedEl) {
+    totalRealizedEl.textContent = formatAmount(totalRealized, true);
+    totalRealizedEl.className = `text-sm font-bold ${totalRealized >= 0 ? "text-emerald-400" : "text-rose-400"}`;
+  }
+
+  if (!magicList.length) {
+    container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Belum ada aktivitas EA / Magic Number yang terdeteksi.</div>`;
+    return;
+  }
+
+  container.innerHTML = magicList
+    .map((ea) => {
+      const isPositiveFloat = ea.floating_pnl >= 0;
+      const isPositiveRealized = ea.realized_pnl >= 0;
+      const statusBadge =
+        ea.status === "LOCKED_TARGET"
+          ? `<span class="px-2.5 py-1 text-xs rounded-lg bg-blue-500/20 text-blue-300 border border-blue-400/40 font-bold">LOCKED • TARGET HARIAN TERCAPAI</span>`
+          : ea.status === "ACTIVE"
+          ? `<span class="px-2.5 py-1 text-xs rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">ACTIVE</span>`
+          : ea.status === "PAUSED"
+          ? `<span class="px-2.5 py-1 text-xs rounded-lg bg-rose-500/15 text-rose-400 border border-rose-500/30 font-bold">PAUSED</span>`
+          : `<span class="px-2.5 py-1 text-xs rounded-lg bg-gray-700/60 text-gray-300 font-bold">${ea.status}</span>`;
+
+      const hasSndTelemetry = Number(ea.daily_limit || 0) > 0 || Number(ea.group_target || 0) > 0;
+      const dailyProfVal =
+        ea.bridge_daily_profit !== null && ea.bridge_daily_profit !== undefined
+          ? Number(ea.bridge_daily_profit)
+          : Number(ea.today_pnl || 0);
+      const dailyPct =
+        ea.daily_limit > 0 ? Math.min(100, Math.max(0, (dailyProfVal / ea.daily_limit) * 100)) : 0;
+      const groupPct =
+        ea.group_target > 0
+          ? Math.min(100, Math.max(0, (Number(ea.floating_pnl || 0) / ea.group_target) * 100))
+          : 0;
+
+      const sndTelemetryHtml = hasSndTelemetry
+        ? `<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-800/80 text-xs font-mono-num">
+             <div class="bg-blue-950/30 border border-blue-500/25 rounded-xl p-3 space-y-2">
+               <div class="flex justify-between text-xs text-gray-300">
+                 <span>Target Harian</span>
+                 <span class="text-blue-300 font-bold">${formatAmount(dailyProfVal, true)} / ${formatAmount(ea.daily_limit)}</span>
+               </div>
+               <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden p-0.5">
+                 <div class="h-full rounded-full bg-emerald-500 transition-all duration-300" style="width: ${dailyPct.toFixed(1)}%"></div>
+               </div>
+               <div class="text-[11px] text-gray-400">Saldo Acuan: <span class="text-gray-200 font-semibold">${formatAmount(ea.start_balance)}</span></div>
+             </div>
+
+             <div class="bg-blue-950/30 border border-blue-500/25 rounded-xl p-3 space-y-2">
+               <div class="flex justify-between text-xs text-gray-300">
+                 <span>Target Group</span>
+                 <span class="text-emerald-300 font-bold">${formatAmount(ea.floating_pnl, true)} / ${formatAmount(ea.group_target)}</span>
+               </div>
+               <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden p-0.5">
+                 <div class="h-full rounded-full bg-blue-500 transition-all duration-300" style="width: ${groupPct.toFixed(1)}%"></div>
+               </div>
+               <div class="text-[11px] text-gray-400">Progress Basket: <span class="text-gray-200 font-semibold">${groupPct.toFixed(0)}%</span></div>
+             </div>
+
+             <div class="bg-blue-950/30 border border-blue-500/25 rounded-xl p-3 flex flex-col justify-between gap-2">
+               <div class="text-xs text-gray-300">Status Layer & Hedge (Max ${ea.max_dir_pos || 3})</div>
+               <div class="grid grid-cols-2 gap-2">
+                 <div class="py-1.5 px-2.5 rounded-lg bg-emerald-500/15 text-emerald-400 font-bold text-center">BUY: ${ea.buy_positions}/${ea.max_dir_pos || 3}</div>
+                 <div class="py-1.5 px-2.5 rounded-lg bg-rose-500/15 text-rose-400 font-bold text-center">SELL: ${ea.sell_positions}/${ea.max_dir_pos || 3}</div>
+               </div>
+             </div>
+           </div>`
+        : "";
+
+      const toggleBtn =
+        ea.status === "LOCKED_TARGET"
+          ? `<span class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-500/10 text-blue-300 border border-blue-500/30 text-center">
+              🔒 Terkunci s/d 00:00
+            </span>`
+          : ea.magic !== 0
+          ? `<button type="button" onclick="toggleEA(${ea.magic}, ${!ea.enabled})" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold border transition ${
+              ea.enabled
+                ? "bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border-amber-500/30"
+                : "bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border-emerald-500/30"
+            }">
+              ${ea.enabled ? "Pause EA" : "Resume EA"}
+            </button>`
+          : "";
+
+      const closeMagicBtn =
+        ea.open_positions > 0
+          ? `<button type="button" onclick="closeAllPositions(${ea.magic}, '${ea.name.replace(/'/g, "")}')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-600 hover:text-white text-rose-400 border border-rose-500/30 transition">
+              Close (${ea.open_positions})
+            </button>`
+          : "";
+
+      return `
+      <div class="p-4 sm:p-5 rounded-2xl bg-gray-900/95 border border-gray-800 space-y-4">
+        
+        <div class="flex items-center justify-between gap-2">
+          <span class="px-3 py-1 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 font-mono-num text-xs font-bold">
+            #${ea.magic}
+          </span>
+          ${statusBadge}
+        </div>
+
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base sm:text-lg font-bold text-white leading-snug">${ea.name}</h3>
+            <button type="button" onclick="openRenameModal(${ea.magic}, '${ea.name.replace(/'/g, "")}')" title="Ubah Nama EA" class="text-gray-400 hover:text-blue-400 transition p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="mt-1 text-xs text-gray-400 font-mono-num">
+            Pair: <span class="text-gray-200 font-semibold">${ea.symbol}</span> • TF: <span class="text-gray-200 font-semibold">${ea.timeframe}</span> • Aktif: <span class="text-gray-200 font-semibold">${ea.open_positions} Posisi (${ea.open_lots.toFixed(2)} Lot)</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 pt-1">
+          <button type="button" onclick="filterAndGoToTerminal('${ea.magic}')" class="flex-1 sm:flex-none px-3.5 py-2 rounded-xl text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition">
+            Lihat di Terminal
+          </button>
+          ${toggleBtn}
+          ${closeMagicBtn}
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-3 border-t border-gray-800/80 text-xs font-mono-num">
+          <div class="bg-gray-950/80 rounded-xl p-3 border border-gray-800/60">
+            <div class="text-[11px] text-gray-400">Floating PnL</div>
+            <div class="mt-1 text-sm sm:text-base font-bold ${isPositiveFloat ? "text-emerald-400" : "text-rose-400"}">
+              ${formatAmount(ea.floating_pnl, true)}
+            </div>
+          </div>
+
+          <div class="bg-gray-950/80 rounded-xl p-3 border border-gray-800/60">
+            <div class="text-[11px] text-gray-400">Profit Hari Ini</div>
+            <div class="mt-1 text-sm sm:text-base font-bold ${ea.today_pnl >= 0 ? "text-emerald-400" : "text-rose-400"}">
+              ${formatAmount(ea.today_pnl, true)}
+            </div>
+          </div>
+
+          <div class="bg-gray-950/80 rounded-xl p-3 border border-gray-800/60">
+            <div class="text-[11px] text-gray-400">Closed PnL (Hari Ini)</div>
+            <div class="mt-1 text-sm sm:text-base font-bold ${isPositiveRealized ? "text-emerald-400" : "text-rose-400"}">
+              ${formatAmount(ea.realized_pnl, true)}
+            </div>
+          </div>
+
+          <div class="bg-gray-950/80 rounded-xl p-3 border border-gray-800/60">
+            <div class="text-[11px] text-gray-400">Win Rate (${ea.win_trades}W/${ea.loss_trades}L)</div>
+            <div class="mt-1 flex items-center gap-2">
+              <span class="text-sm sm:text-base font-bold text-white">${ea.win_rate}%</span>
+            </div>
+          </div>
+
+          <div class="bg-gray-950/80 rounded-xl p-3 border border-gray-800/60 col-span-2 sm:col-span-2">
+            <div class="text-[11px] text-gray-400">Profit Factor</div>
+            <div class="mt-1 text-sm sm:text-base font-bold ${ea.profit_factor >= 1.5 ? "text-emerald-400" : ea.profit_factor >= 1.0 ? "text-amber-400" : "text-rose-400"}">
+              ${ea.profit_factor.toFixed(2)}
+            </div>
+          </div>
+        </div>
+
+        ${sndTelemetryHtml}
+      </div>`;
+    })
+    .join("");
+}
+
+function filterAndGoToTerminal(magic) {
+  setMagicFilter(magic);
+  switchPage("terminal");
+}
+
+function updateMagicFilterDropdown(magicList) {
+  const sel = document.getElementById("magic-filter-select");
+  if (!sel) return;
+  const currentVal = selectedMagicFilter;
+  let html = `<option value="ALL">Semua Magic Number</option>`;
+  for (const ea of magicList) {
+    html += `<option value="${ea.magic}" ${String(currentVal) === String(ea.magic) ? "selected" : ""}>#${ea.magic}</option>`;
+  }
+  sel.innerHTML = html;
+}
+
+function setMagicFilter(val) {
+  selectedMagicFilter = String(val);
+  const sel = document.getElementById("magic-filter-select");
+  if (sel) sel.value = selectedMagicFilter;
+  if (latestState) {
+    renderOpenPositions(latestState.positions || []);
+    renderClosedDeals(latestState.recent_deals || []);
+  }
+}
+
+function renderOpenPositions(positions) {
+  const tbody = document.getElementById("open-positions-tbody");
+  const filtered =
+    selectedMagicFilter === "ALL"
+      ? positions
+      : positions.filter((p) => String(p.magic) === selectedMagicFilter);
+
+  document.getElementById("tab-pos-count").textContent = filtered.length;
+
+  const totalFloat = filtered.reduce((acc, p) => acc + Number(p.net_profit || 0), 0);
+  const totalLots = filtered.reduce((acc, p) => acc + Number(p.volume || 0), 0);
+  const termFloatEl = document.getElementById("term-floating-pnl");
+  const termOpenSubEl = document.getElementById("term-open-sub");
+  if (termFloatEl) {
+    termFloatEl.textContent = formatAmount(totalFloat, true);
+    termFloatEl.className = `text-lg sm:text-xl font-bold font-mono-num ${
+      totalFloat >= 0 ? "text-emerald-400" : "text-rose-400"
+    }`;
+  }
+  if (termOpenSubEl) {
+    termOpenSubEl.textContent = `${filtered.length} Posisi Aktif (${totalLots.toFixed(2)} Lot) • Target Group: ${formatAmount(10)}`;
+  }
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">Tidak ada posisi terbuka saat ini (Status EA: LOCKED • Menunggu Jam 00:00).</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered
+    .map((p) => {
+      const isBuy = String(p.type).toUpperCase() === "BUY";
+      const net = Number(p.net_profit || 0);
+      return `
+      <tr class="hover:bg-gray-800/40 transition">
+        <td class="py-3 px-2.5 text-gray-300">#${p.ticket}</td>
+        <td class="py-3 px-2.5 font-bold text-white">${p.symbol}</td>
+        <td class="py-3 px-2.5">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+            isBuy ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"
+          }">${p.type}</span>
+        </td>
+        <td class="py-3 px-2.5 font-semibold text-gray-200">${Number(p.volume).toFixed(2)}</td>
+        <td class="py-3 px-2.5">
+          <span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 font-bold">#${p.magic}</span>
+        </td>
+        <td class="py-3 px-2.5 text-gray-300">${formatPrice(p.symbol, p.price_open)}</td>
+        <td class="py-3 px-2.5 text-white font-semibold">${formatPrice(p.symbol, p.price_current)}</td>
+        <td class="py-3 px-2.5 text-right font-bold ${net >= 0 ? "text-emerald-400" : "text-rose-400"}">
+          ${formatAmount(net, true)}
+        </td>
+        <td class="py-3 px-2.5 text-right">
+          <button type="button" onclick="closeSinglePosition(${p.ticket})" class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-600 text-rose-400 hover:text-white text-[11px] font-semibold transition">
+            Close
+          </button>
+        </td>
+      </tr>`;
+    })
+    .join("");
+}
+
+function renderClosedDeals(deals) {
+  const tbody = document.getElementById("closed-deals-tbody");
+  const filtered =
+    selectedMagicFilter === "ALL"
+      ? deals
+      : deals.filter((d) => String(d.magic) === selectedMagicFilter);
+
+  document.getElementById("tab-deals-count").textContent = filtered.length;
+
+  const totalClosedProfit = filtered.reduce((acc, d) => acc + Number(d.net_profit || 0), 0);
+  const termClosedEl = document.getElementById("term-closed-profit");
+  const termClosedSubEl = document.getElementById("term-closed-sub");
+  if (termClosedEl) {
+    termClosedEl.textContent = formatAmount(totalClosedProfit, true);
+    termClosedEl.className = `text-lg sm:text-xl font-bold font-mono-num ${
+      totalClosedProfit >= 0 ? "text-emerald-400" : "text-rose-400"
+    }`;
+  }
+  if (termClosedSubEl) {
+    termClosedSubEl.textContent = `${filtered.length} Transaksi Selesai • Target Harian: ${formatAmount(100)}`;
+  }
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500">Belum ada histori transaksi closed untuk filter ini.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered
+    .map((d) => {
+      const isBuy = String(d.type).toUpperCase() === "BUY";
+      const net = Number(d.net_profit || 0);
+      return `
+      <tr class="hover:bg-gray-800/40 transition">
+        <td class="py-2.5 px-1.5 text-gray-300 truncate">${formatTime(d.time)}</td>
+        <td class="py-2.5 px-1.5 font-bold text-white truncate">${d.symbol}</td>
+        <td class="py-2.5 px-1 text-center">
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${
+            isBuy ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"
+          }">${d.type}</span>
+        </td>
+        <td class="py-2.5 px-1 text-right text-gray-200">${Number(d.volume).toFixed(2)}</td>
+        <td class="py-2.5 px-1.5 text-right font-bold truncate ${net >= 0 ? "text-emerald-400" : "text-rose-400"}">
+          ${formatAmount(net, true)}
+        </td>
+      </tr>`;
+    })
+    .join("");
+}
+
+function switchBottomTab(tab) {
+  const posPanel = document.getElementById("tab-panel-positions");
+  const dealsPanel = document.getElementById("tab-panel-deals");
+  const posBtn = document.getElementById("tab-btn-positions");
+  const dealsBtn = document.getElementById("tab-btn-deals");
+
+  if (tab === "positions") {
+    posPanel.classList.remove("hidden");
+    dealsPanel.classList.add("hidden");
+    posBtn.className = "py-2.5 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white transition text-center";
+    dealsBtn.className = "py-2.5 px-3 rounded-xl text-xs font-bold bg-gray-800 hover:bg-gray-700 text-gray-300 transition text-center";
+  } else {
+    posPanel.classList.add("hidden");
+    dealsPanel.classList.remove("hidden");
+    dealsBtn.className = "py-2.5 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white transition text-center";
+    posBtn.className = "py-2.5 px-3 rounded-xl text-xs font-bold bg-gray-800 hover:bg-gray-700 text-gray-300 transition text-center";
+  }
+}
+
+async function closeSinglePosition(ticket) {
+  try {
+    const res = await fetch("/api/positions/close", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ticket: Number(ticket) }),
+    });
+    const data = await res.json();
+    if (data.state) updateDashboard(data.state);
+  } catch (err) {
+    showToast("Gagal menutup posisi.");
+  }
+}
+
+async function closeAllPositions(magic, label) {
+  if (!confirm(`Yakin ingin menutup semua posisi aktif untuk ${label}?`)) return;
+  try {
+    const res = await fetch("/api/positions/close-magic", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ magic: Number(magic) }),
+    });
+    const data = await res.json();
+    if (data.state) updateDashboard(data.state);
+  } catch (err) {
+    showToast("Tidak ada posisi aktif untuk ditutup.");
+  }
+}
+
+async function toggleEA(magic, enabled) {
+  try {
+    const res = await fetch("/api/ea/toggle", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ magic: Number(magic), enabled: Boolean(enabled) }),
+    });
+    const data = await res.json();
+    showToast(`Status EA Magic #${magic} diubah menjadi ${enabled ? "ACTIVE" : "PAUSED"}.`);
+    if (data.state) updateDashboard(data.state);
+  } catch (err) {
+    showToast("Status EA diperbarui.");
+  }
+}
+
+async function toggleSimulationMode() {
+  if (!latestState) return;
+  const conn = latestState.connection || {};
+  const nextForceMock = conn.connected_to_mt5 ? true : false;
+  try {
+    const res = await fetch("/api/mode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ force_mock: nextForceMock }),
+    });
+    const data = await res.json();
+    if (data.state) {
+      updateDashboard(data.state);
+      if (data.state.connection.connected_to_mt5) {
+        showToast("Terhubung langsung ke terminal MetaTrader 5!");
+      } else {
+        showToast("Berjalan dalam Mode Simulasi (Terminal MT5 belum terdeteksi aktif).");
+      }
+    }
+  } catch (err) {
+    showToast("Berjalan dalam Mode Demo Mandiri.");
+  }
+}
+
+function openRenameModal(magic, currentName) {
+  currentRenamingMagic = magic;
+  document.getElementById("rename-magic-id").textContent = magic;
+  const input = document.getElementById("rename-input");
+  input.value = currentName;
+  document.getElementById("rename-modal").classList.remove("hidden");
+  input.focus();
+}
+
+function closeRenameModal() {
+  document.getElementById("rename-modal").classList.add("hidden");
+  currentRenamingMagic = null;
+}
+
+async function saveRenameModal() {
+  if (currentRenamingMagic === null) return;
+  const newName = document.getElementById("rename-input").value.trim();
+  try {
+    const res = await fetch("/api/ea/label", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ magic: Number(currentRenamingMagic), name: newName }),
+    });
+    const data = await res.json();
+    closeRenameModal();
+    showToast(`Nama EA untuk Magic #${currentRenamingMagic} disimpan.`);
+    if (data.state) updateDashboard(data.state);
+  } catch (err) {
+    closeRenameModal();
+    showToast("Nama EA disimpan.");
+  }
+}
+
+function connectWebSocket() {
+  try {
+    const proto = window.location.protocol === "https:" ? "wss" : "ws";
+    ws = new WebSocket(`${proto}://${window.location.host}/ws`);
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        updateDashboard(data);
+      } catch (e) {}
+    };
+    ws.onclose = () => {
+      setTimeout(connectWebSocket, 4000);
+    };
+  } catch (e) {}
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const savedUser = localStorage.getItem("eamon_user_name") || "Demo Trader (Publik)";
+  applyUserProfile(savedUser);
+  if (localStorage.getItem("eamon_logged_in") !== "true") {
+    const loginScr = document.getElementById("login-screen");
+    if (loginScr) loginScr.classList.remove("hidden");
+  }
+
+  renderNotifications();
+  initEquityChart();
+  await fetchLiveBtcPriceClient();
+
+  try {
+    const res = await fetch("/api/state");
+    if (res.ok) {
+      const initial = await res.json();
+      updateDashboard(initial);
+      connectWebSocket();
+      setInterval(fetchLiveBtcPriceClient, 4000);
+      return;
+    }
+  } catch (e) {}
+
+  // Jika dibuka dari GitHub Pages / Vercel (Static Hosting), gunakan Standalone Engine dengan Harga BTCUSD Real-Time
+  updateDashboard(buildStandaloneState());
+  setInterval(async () => {
+    await fetchLiveBtcPriceClient();
+    updateDashboard(buildStandaloneState());
+  }, 3000);
+});
+
+</script>
+</body>
+</html>
+
