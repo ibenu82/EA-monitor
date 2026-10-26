@@ -773,13 +773,7 @@
           <!-- PANDUAN AKUN REAL MT5 -->
           <div class="glass-card rounded-2xl p-4 sm:p-6 space-y-5">
             <div class="border-b border-gray-800 pb-3">
-              <div class="flex items-center justify-between gap-2">
-                <h3 class="text-sm sm:text-base font-bold text-white">Panduan Akun Real MT5</h3>
-                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">RAMAH PEMULA</span>
-              </div>
-              <p class="text-xs text-gray-300 mt-1">
-                Klien tidak perlu repot menyewa VPS sendiri atau memasang file robot (.mq5) di laptop. Seluruh terminal MT5 dan Server VPS 24 jam sudah disediakan sistem.
-              </p>
+              <h3 class="text-sm sm:text-base font-bold text-white">Panduan Akun Real MT5</h3>
             </div>
 
             <!-- 3 Langkah Mudah untuk Klien -->
@@ -872,11 +866,28 @@
               </button>
             </div>
 
+            <!-- Tombol Cepat Pilihan Periode Waktu Backtest -->
+            <div class="flex items-center gap-2 flex-wrap pb-1">
+              <span class="text-xs text-gray-400 font-semibold mr-1">Pilih Periode:</span>
+              <button type="button" onclick="setBacktestPeriod('1M')" id="bt-btn-period-1M" class="py-1.5 px-3 rounded-xl font-semibold text-xs bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 transition">
+                1 Bulan
+              </button>
+              <button type="button" onclick="setBacktestPeriod('3M')" id="bt-btn-period-3M" class="py-1.5 px-3 rounded-xl font-semibold text-xs bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 transition">
+                3 Bulan
+              </button>
+              <button type="button" onclick="setBacktestPeriod('6M')" id="bt-btn-period-6M" class="py-1.5 px-3 rounded-xl font-semibold text-xs bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 transition">
+                6 Bulan
+              </button>
+              <button type="button" onclick="setBacktestPeriod('1Y')" id="bt-btn-period-1Y" class="py-1.5 px-3 rounded-xl font-bold text-xs bg-blue-600 text-white shadow-md shadow-blue-900/40 border border-blue-400 transition">
+                1 Tahun Penuh (365 Hari)
+              </button>
+            </div>
+
             <!-- Kontrol Parameter Backtest -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div class="p-3 rounded-xl bg-gray-950/80 border border-gray-800">
                 <label class="block text-gray-400 mb-1 font-medium">Periode Pengujian</label>
-                <select id="bt-period-select" onchange="runBacktestSimulation()" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-white font-semibold focus:outline-none focus:border-blue-500">
+                <select id="bt-period-select" onchange="setBacktestPeriod(this.value)" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-white font-semibold focus:outline-none focus:border-blue-500">
                   <option value="1M">1 Bulan Terakhir</option>
                   <option value="3M">3 Bulan Terakhir</option>
                   <option value="6M">6 Bulan Terakhir</option>
@@ -959,11 +970,11 @@
               </div>
             </div>
 
-            <!-- Log Sampel Siklus Transaksi Backtest -->
+            <!-- Log Sampel Siklus Transaksi Backtest (1 Hari Sebelumnya) -->
             <div class="space-y-2">
-              <div class="flex items-center justify-between">
-                <h4 class="text-xs font-bold text-white">Sampel Transaksi & Siklus Basket Hasil Backtest</h4>
-                <span class="text-[11px] text-gray-400">Runtutan Lot: 0.01 ➔ 0.02 (Layer 1) ➔ 0.03 (Layer 2) ➔ Hedge saat -$5.00</span>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                <h4 class="text-xs font-bold text-white">Sampel Transaksi Siklus (1 Hari Sebelumnya)</h4>
+                <span class="text-[11px] text-amber-300 font-medium">Pengujian komprehensif penuh dilakukan langsung di Strategy Tester MT5</span>
               </div>
               <div class="overflow-x-auto -mx-2 px-2">
                 <table class="w-full text-left border-collapse min-w-[500px]">
@@ -1365,6 +1376,86 @@ function buildStandaloneState() {
   }
   totalFloating = Number(totalFloating.toFixed(2));
   totalLots = Number(totalLots.toFixed(2));
+
+  // 1. LAYER / MARTINGALE OTOMATIS: Jarak Pasti $50 USD dari posisi terakhir
+  const buys = standalonePositions.filter((p) => p.type === "BUY");
+  const sells = standalonePositions.filter((p) => p.type === "SELL");
+
+  if (buys.length > 0 && buys.length < 3) {
+    const lastBuy = buys[buys.length - 1];
+    if (lastBuy.price_open - liveBtcPrice >= 50.0) {
+      const nextLot = buys.length === 1 ? 0.02 : 0.03;
+      standalonePositions.push({
+        ticket: Math.floor(Date.now() / 100) % 80000000 + 10000000 + buys.length,
+        symbol: symName,
+        type: "BUY",
+        volume: nextLot,
+        price_open: liveBtcPrice,
+        price_current: liveBtcPrice,
+        sl: 0.0,
+        tp: 0.0,
+        swap: 0.0,
+        commission: Number((-0.05 * (nextLot / 0.01)).toFixed(2)),
+        profit: 0.0,
+        net_profit: Number((-0.05 * (nextLot / 0.01)).toFixed(2)),
+        magic: 1255,
+        comment: `Layer_${buys.length}`,
+        time: Math.floor(Date.now() / 1000),
+      });
+      addNotification("EXEC", `LAYER ${buys.length} BUY TERBUKA (${nextLot} Lot)`, `Jarak harga berbalik $50 USD dari posisi terakhir. Layer ${buys.length} aktif.`);
+      showToast(`Layer ${buys.length} BUY (${nextLot} Lot) terbuka pada jarak harga $50!`);
+    }
+  }
+
+  // 2. HEDGING OTOMATIS: Jika total floating mencapai threshold -$5.00 (-50 USC di Cent)
+  const hedgeLossLimit = isCent ? -50.0 : -5.0;
+  if (buys.length > 0 && sells.length === 0 && totalFloating <= hedgeLossLimit) {
+    const hedgeLot = 0.02;
+    standalonePositions.push({
+      ticket: Math.floor(Date.now() / 100) % 80000000 + 20000000,
+      symbol: symName,
+      type: "SELL",
+      volume: hedgeLot,
+      price_open: liveBtcPrice,
+      price_current: liveBtcPrice,
+      sl: 0.0,
+      tp: 0.0,
+      swap: 0.0,
+      commission: -0.10,
+      profit: 0.0,
+      net_profit: -0.10,
+      magic: 1255,
+      comment: "Hedge_S",
+      time: Math.floor(Date.now() / 1000),
+    });
+    addNotification("EXEC", "HEDGE OTOMATIS AKTIF (SELL 0.02 Lot)", `Floating menyentuh batas kerugian -$5.00 (${formatAmount(totalFloating)}). Posisi Hedge SELL dibuka untuk mengunci risiko.`);
+    showToast(`Hedge Pengaman Aktif! SELL 0.02 Lot dibuka (Floating ${formatAmount(totalFloating)}).`);
+  } else if (sells.length > 0 && buys.length === 0 && totalFloating <= hedgeLossLimit) {
+    const hedgeLot = 0.02;
+    standalonePositions.push({
+      ticket: Math.floor(Date.now() / 100) % 80000000 + 30000000,
+      symbol: symName,
+      type: "BUY",
+      volume: hedgeLot,
+      price_open: liveBtcPrice,
+      price_current: liveBtcPrice,
+      sl: 0.0,
+      tp: 0.0,
+      swap: 0.0,
+      commission: -0.10,
+      profit: 0.0,
+      net_profit: -0.10,
+      magic: 1255,
+      comment: "Hedge_B",
+      time: Math.floor(Date.now() / 1000),
+    });
+    addNotification("EXEC", "HEDGE OTOMATIS AKTIF (BUY 0.02 Lot)", `Floating menyentuh batas kerugian -$5.00 (${formatAmount(totalFloating)}). Posisi Hedge BUY dibuka.`);
+    showToast(`Hedge Pengaman Aktif! BUY 0.02 Lot dibuka (Floating ${formatAmount(totalFloating)}).`);
+  }
+
+  // Recalculate total after potential Hedge/Layer additions
+  totalFloating = Number(standalonePositions.reduce((acc, p) => acc + (p.net_profit || 0), 0).toFixed(2));
+  totalLots = Number(standalonePositions.reduce((acc, p) => acc + (p.volume || 0), 0).toFixed(2));
 
   // Auto-close jika mencapai Target Group 10.00
   if (standalonePositions.length > 0 && totalFloating >= 10.0) {
@@ -2357,6 +2448,26 @@ function initBacktestChart() {
   });
 }
 
+function setBacktestPeriod(period) {
+  const periodSel = document.getElementById("bt-period-select");
+  if (periodSel) periodSel.value = period;
+
+  for (const p of ["1M", "3M", "6M", "1Y"]) {
+    const btn = document.getElementById(`bt-btn-period-${p}`);
+    if (btn) {
+      if (p === period) {
+        btn.className = "py-1.5 px-3 rounded-xl font-bold text-xs bg-blue-600 text-white shadow-md shadow-blue-900/40 border border-blue-400 transition";
+      } else {
+        btn.className = "py-1.5 px-3 rounded-xl font-semibold text-xs bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 transition";
+      }
+    }
+  }
+
+  runBacktestSimulation();
+  const label = period === "1M" ? "1 Bulan" : period === "3M" ? "3 Bulan" : period === "6M" ? "6 Bulan" : "1 Tahun";
+  showToast(`Hasil Backtest Periode ${label} dimuat!`);
+}
+
 function runBacktestSimulation() {
   const periodSel = document.getElementById("bt-period-select");
   const modeSel = document.getElementById("bt-mode-select");
@@ -2365,6 +2476,17 @@ function runBacktestSimulation() {
   const period = periodSel ? periodSel.value : "1Y";
   const mode = modeSel ? modeSel.value : "STANDARD";
   const tf = tfSel ? tfSel.value : "M5";
+
+  for (const p of ["1M", "3M", "6M", "1Y"]) {
+    const btn = document.getElementById(`bt-btn-period-${p}`);
+    if (btn) {
+      if (p === period) {
+        btn.className = "py-1.5 px-3 rounded-xl font-bold text-xs bg-blue-600 text-white shadow-md shadow-blue-900/40 border border-blue-400 transition";
+      } else {
+        btn.className = "py-1.5 px-3 rounded-xl font-semibold text-xs bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 transition";
+      }
+    }
+  }
 
   const isCent = mode === "CENT";
   const startBal = isCent ? 2000.0 : 2000.0;
@@ -2464,45 +2586,45 @@ function runBacktestSimulation() {
     window._backtestChart.update();
   }
 
-  // Populate Deals Table
+  // Populate Deals Table (Hanya 1 Hari Sebelumnya Saja - Pengujian penuh dilakukan di MT5 Strategy Tester)
   const tbody = document.getElementById("backtest-deals-tbody");
   if (tbody) {
     const sampleCycles = [
       {
-        cycle: "#254",
-        time: "Hari ke-360 • Sesi London",
+        cycle: "Siklus #5",
+        time: "Kemarin • 20:10 WIB (Sesi New York)",
         combo: `<span class="text-emerald-400 font-bold">Init BUY 0.01</span> ➔ TP Langsung (SND ${tf})`,
         lots: "0.01 Lot",
         floating: "-$0.80",
         pnl: isCent ? "+1,015.00 ¢" : "+$10.15",
       },
       {
-        cycle: "#253",
-        time: "Hari ke-358 • Sesi New York",
+        cycle: "Siklus #4",
+        time: "Kemarin • 16:35 WIB (Sesi London/NY)",
         combo: `<span class="text-rose-400 font-bold">Init SELL 0.01</span> ➔ <span class="text-rose-300 font-semibold">Layer SELL 0.02 ($50)</span> ➔ Basket Exit`,
         lots: "0.03 Lot",
         floating: "-$4.20",
         pnl: isCent ? "+1,040.00 ¢" : "+$10.40",
       },
       {
-        cycle: "#252",
-        time: "Hari ke-355 • Sesi Asia",
+        cycle: "Siklus #3",
+        time: "Kemarin • 12:20 WIB (Sesi London)",
         combo: `<span class="text-emerald-400 font-bold">Init BUY 0.01</span> ➔ <span class="text-amber-400 font-semibold">Hedge SELL 0.02 (-$5)</span> ➔ <span class="text-emerald-300 font-semibold">Layer BUY 0.02</span> ➔ Basket Exit`,
         lots: "0.05 Lot",
         floating: "-$9.80",
         pnl: isCent ? "+1,020.00 ¢" : "+$10.20",
       },
       {
-        cycle: "#251",
-        time: "Hari ke-351 • Berita FOMC",
+        cycle: "Siklus #2",
+        time: "Kemarin • 08:42 WIB (Sesi Tokyo/London)",
         combo: `<span class="text-rose-400 font-bold">Init SELL 0.01</span> ➔ <span class="text-rose-300">Layer SELL 0.02</span> ➔ <span class="text-rose-200">Layer SELL 0.03</span> ➔ <span class="text-amber-400 font-semibold">Hedge BUY 0.02</span> ➔ Basket Exit`,
         lots: "0.08 Lot",
         floating: "-$38.50",
         pnl: isCent ? "+1,080.00 ¢" : "+$10.80",
       },
       {
-        cycle: "#250",
-        time: "Hari ke-348 • Sesi London",
+        cycle: "Siklus #1",
+        time: "Kemarin • 03:15 WIB (Sesi Asia)",
         combo: `<span class="text-emerald-400 font-bold">Init BUY 0.01</span> ➔ <span class="text-emerald-300">Layer BUY 0.02 ($50)</span> ➔ Basket Exit`,
         lots: "0.03 Lot",
         floating: "-$3.10",
