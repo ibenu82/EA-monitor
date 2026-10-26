@@ -11,12 +11,30 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="EA Monitor" />
+  <script>
+    // Cleanup service worker agresif agar aset GitHub Pages tidak di-cache rusak
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const reg of registrations) reg.unregister();
+      });
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (const name of names) caches.delete(name);
+        });
+      }
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* PENTING: Rule default wajib agar halaman lain tidak bocor ke Beranda jika Tailwind lambat dimuat */
+    .hidden {
+      display: none !important;
+    }
+
     :root {
       --bg-main: #090d16;
       --bg-card: #111827;
