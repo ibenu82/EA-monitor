@@ -1118,10 +1118,16 @@
   </div>
 
   <script>
+    // Pastikan Service Worker lama dibersihkan agar Tailwind CSS & Chart.js selalu dimuat fresh
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (const reg of registrations) reg.unregister();
       });
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          for (const name of names) caches.delete(name);
+        });
+      }
     }
   </script>
   <script>
@@ -2303,10 +2309,12 @@ function showToast(msg) {
 }
 
 function initEquityChart() {
+  if (typeof Chart === 'undefined') return;
   const ctx = document.getElementById("equityChart");
   if (!ctx) return;
 
-  equityChart = new Chart(ctx, {
+  try {
+    equityChart = new Chart(ctx, {
     type: "line",
     data: {
       labels: [],
@@ -2366,16 +2374,19 @@ function initEquityChart() {
       },
     },
   });
+  } catch (e) {}
 }
 
 // ============================================================================
 // MODUL UJI KUALITAS ROBOT EA (BACKTEST SIMULATION LAB)
 // ============================================================================
 function initBacktestChart() {
+  if (typeof Chart === 'undefined') return;
   const ctx = document.getElementById("backtestChart");
   if (!ctx || window._backtestChart) return;
 
-  window._backtestChart = new Chart(ctx, {
+  try {
+    window._backtestChart = new Chart(ctx, {
     type: "line",
     data: {
       labels: [],
@@ -2434,6 +2445,7 @@ function initBacktestChart() {
       },
     },
   });
+  } catch (e) {}
 }
 
 function runBacktestSimulation() {
@@ -2451,7 +2463,7 @@ function runBacktestSimulation() {
   const pct = "+2.58%";
   const winRate = "100.0%";
   const winCounts = "5W / 0L";
-  const profitFactor = "∞ (Maksimal)";
+  const profitFactor = "Maksimal (Bersih)";
   const maxDd = "1.85%";
   const cycles = 5;
   const avgDaily = isCent ? "+5,165 ¢" : "+$51.65";
@@ -2773,7 +2785,7 @@ function updateDashboard(state) {
   // 3. Margin Level
   document.getElementById("kpi-leverage").textContent = `1:${acc.leverage || 500}`;
   document.getElementById("kpi-margin-level").textContent =
-    m.margin_level > 0 ? `${Number(m.margin_level).toLocaleString("en-US", { maximumFractionDigits: 1 })}%` : "∞ (Tanpa Margin)";
+    m.margin_level > 0 ? `${Number(m.margin_level).toLocaleString("en-US", { maximumFractionDigits: 1 })}%` : "Aman (Tanpa Beban)";
   document.getElementById("kpi-free-margin").textContent = formatAmount(m.free_margin);
 
   // 4. Drawdown Saat Ini
