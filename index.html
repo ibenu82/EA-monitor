@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id" class="dark">
 <head>
   <meta charset="UTF-8" />
@@ -114,19 +114,23 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-[11px] font-medium text-gray-400 mb-1">Pilih Broker</label>
-            <select id="login-broker" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option value="Headway">Headway</option>
-              <option value="Exness">Exness</option>
-              <option value="XM">XM</option>
+            <select id="login-broker" onchange="onLoginBrokerChange()" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+              <option value="Headway">Headway (Cent & Std)</option>
+              <option value="Exness">Exness (Khusus Std)</option>
+              <option value="XM">XM (Khusus Std)</option>
+              <option value="MIFX">MIFX (Khusus Std)</option>
             </select>
           </div>
           <div>
-            <label class="block text-[11px] font-medium text-gray-400 mb-1">Pilih EA Versi</label>
+            <label class="block text-[11px] font-medium text-gray-400 mb-1">Mode Akun (EA Versi)</label>
             <select id="login-ea-version" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option value="CENT">Akun CENT ($20)</option>
+              <option id="login-opt-cent" value="CENT">Akun CENT ($20)</option>
               <option value="STANDARD">Standard ($2000)</option>
             </select>
           </div>
+        </div>
+        <div id="login-broker-mode-hint" class="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 rounded-lg px-2.5 py-1.5 leading-snug">
+          ✓ Broker <strong>Headway</strong> mendukung pilihan <strong>Akun CENT ($20)</strong> maupun <strong>Standard ($2.000)</strong>.
         </div>
         <div class="grid grid-cols-2 gap-2 pt-0.5">
           <button type="button" onclick="fillDemoAccount('demo_trader')" class="py-1.5 px-2 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700 text-[11px] text-blue-400 font-mono-num">
@@ -521,6 +525,64 @@
 
             <div id="magic-cards-container" class="mt-4 space-y-4"></div>
           </div>
+
+          <!-- Ringkasan Alur Kinerja EA (Entry, Hedging, Layering/Martingale, Exit) -->
+          <div class="glass-card rounded-2xl p-4 sm:p-6 space-y-4">
+            <div class="border-b border-gray-800 pb-3">
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="text-sm sm:text-base font-bold text-white">Alur Kinerja Robot EA (SND V12.55 Balance Surplus)</h3>
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[10px] font-bold">LOGIKA TERPROGRAM</span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">Penjelasan transparan kapan robot melakukan Entry, membuka Hedging, membuka Layering (Martingale terukur), dan Exit.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3.5 rounded-xl bg-gray-900/95 border border-emerald-500/30 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-emerald-400">1. Kapan Entry Awal (Init_B / Init_S)?</span>
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono-num text-[10px] font-bold">0.01 Lot</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed">
+                  Saat belum ada posisi terbuka, EA memindai <strong>Zona Supply & Demand (SND)</strong> dan filter tren <strong>EMA 50</strong>:
+                  <br/>• <strong>Entry BUY:</strong> Harga masuk Zona Demand & berada di atas garis EMA 50.
+                  <br/>• <strong>Entry SELL:</strong> Harga masuk Zona Supply & berada di bawah garis EMA 50.
+                </p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-gray-900/95 border border-amber-500/30 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-amber-400">2. Kapan Hedging Terbuka (Hedge_B / Hedge_S)?</span>
+                  <span class="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-mono-num text-[10px] font-bold">Lot × 1.5</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed">
+                  Terbuka otomatis jika harga <strong>berbalik arah menembus EMA 50</strong>:
+                  <br/>• Jika ada posisi <strong>BUY</strong> tetapi belum ada SELL, lalu harga turun ke bawah EMA 50 ➔ buka <strong>Hedge SELL (0.02 Lot)</strong>.
+                  <br/>• Jika ada posisi <strong>SELL</strong> tetapi belum ada BUY, lalu harga naik ke atas EMA 50 ➔ buka <strong>Hedge BUY (0.02 Lot)</strong>.
+                </p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-gray-900/95 border border-purple-500/30 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-purple-400">3. Kapan Martingale / Layer Terbuka?</span>
+                  <span class="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 font-mono-num text-[10px] font-bold">Maks 3 Posisi/Arah</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed">
+                  Jika posisi yang ada bergerak sejauh <strong>50.000 poin ($500 di BTCUSD)</strong> dari harga entry terakhir, EA membuka posisi tambahan (<strong>Layer</strong>) dengan ukuran lot dikali <strong>1.5x</strong>. Dibatasi ketat <strong>maksimal 3 BUY dan 3 SELL</strong> agar ketahanan dana selalu aman.
+                </p>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-gray-900/95 border border-blue-500/30 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-blue-400">4. Kapan Exit / Tutup Posisi (CloseAll)?</span>
+                  <span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 font-mono-num text-[10px] font-bold">+$10 / +$100</span>
+                </div>
+                <p class="text-gray-300 leading-relaxed">
+                  • <strong>Exit Siklus (+$10 / 10¢):</strong> Begitu total akumulasi floating seluruh posisi terbuka mencapai <strong>+10.00</strong>, semua posisi langsung ditutup serentak menjadi saldo.<br/>
+                  • <strong>Exit & Kunci Harian (+$100 / 100¢):</strong> Saat profit hari ini mencapai <strong>+100.00</strong>, semua posisi ditutup & EA dikunci sampai pukul <strong>00:00</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- ========================================================== -->
@@ -538,20 +600,21 @@
               </button>
             </div>
 
-            <!-- Tabel 1: Posisi Terbuka (Tanpa Kolom Magic Number) -->
+            <!-- Tabel 1: Posisi Terbuka (Lengkap dengan Waktu Entry & Durasi Floating) -->
             <div id="tab-panel-positions" class="mt-4 space-y-3">
               <div class="overflow-x-auto -mx-2 px-2">
-                <table class="w-full text-left border-collapse min-w-[480px]">
+                <table class="w-full text-left border-collapse min-w-[560px]">
                   <thead>
                     <tr class="border-b border-gray-800 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                      <th class="py-2.5 px-2.5">Ticket</th>
-                      <th class="py-2.5 px-2.5">Symbol</th>
-                      <th class="py-2.5 px-2.5">Type</th>
-                      <th class="py-2.5 px-2.5">Lot</th>
-                      <th class="py-2.5 px-2.5">Open</th>
-                      <th class="py-2.5 px-2.5">Current</th>
-                      <th class="py-2.5 px-2.5 text-right">Floating PnL</th>
-                      <th class="py-2.5 px-2.5 text-right">Aksi</th>
+                      <th class="py-2.5 px-2">Ticket</th>
+                      <th class="py-2.5 px-2">Symbol</th>
+                      <th class="py-2.5 px-2">Type</th>
+                      <th class="py-2.5 px-2">Lot</th>
+                      <th class="py-2.5 px-2">Waktu Entry & Durasi Floating</th>
+                      <th class="py-2.5 px-2">Open</th>
+                      <th class="py-2.5 px-2">Current</th>
+                      <th class="py-2.5 px-2 text-right">Floating PnL</th>
+                      <th class="py-2.5 px-2 text-right">Aksi</th>
                     </tr>
                   </thead>
                   <tbody id="open-positions-tbody" class="divide-y divide-gray-800/60 text-xs font-mono-num"></tbody>
@@ -622,42 +685,59 @@
         </section>
 
         <!-- ========================================================== -->
-        <!-- HALAMAN 4: EA VERSI (MODE AKUN CENT vs MODE AKUN STANDARD) -->
+        <!-- HALAMAN 4: EA VERSI (TERKAIT LANGSUNG DENGAN BROKER AKTIF) -->
         <!-- ========================================================== -->
         <section id="page-eaversion" class="hidden space-y-4">
           <div class="glass-card rounded-2xl p-4 sm:p-6 space-y-5">
-            <div class="border-b border-gray-800 pb-4">
-              <h2 class="text-base sm:text-lg font-bold text-white">Pilihan Versi EA (Cent & Standard)</h2>
-              <p class="text-xs sm:text-sm text-gray-300 mt-1">
-                Pilih jenis akun yang sesuai dengan modal Anda. Kedua versi bekerja dengan cara dan ukuran lot yang sama.
-              </p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-4">
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-white">Mode Akun & Versi EA (Terkait Kebijakan Broker)</h2>
+                <p class="text-xs sm:text-sm text-gray-300 mt-1">
+                  Pilihan Mode Akun otomatis menyesuaikan ketersediaan jenis akun pada broker yang Anda pilih.
+                </p>
+              </div>
+              <button type="button" onclick="switchPage('broker')" class="px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-300 text-xs font-bold transition shrink-0">
+                Broker Aktif: <span id="eaversion-current-broker" class="text-white">Headway</span> (Ubah Broker ➔)
+              </button>
+            </div>
+
+            <!-- Info Status Keterkaitan Broker & Mode Akun -->
+            <div id="eaversion-broker-policy-banner" class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 leading-relaxed">
+              ✓ Broker <strong>Headway</strong> menyediakan <strong>Mode Akun Cent ($20)</strong> dan <strong>Mode Akun Standard ($2.000)</strong> untuk instrumen BTCUSD.
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <!-- Versi 1: Mode Akun CENT -->
               <div id="card-version-cent" class="p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
                 <div class="space-y-3.5">
-                  <div class="flex items-center justify-between">
+                  <div class="flex items-center justify-between gap-2">
                     <span class="px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-bold">
-                      MODAL KECIL • AKUN CENT
+                      MODAL KECIL • AKUN CENT ($20)
                     </span>
                     <span id="badge-active-cent" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold">
                       AKTIF
                     </span>
+                    <span id="badge-locked-cent" class="hidden px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
+                      🔒 KHUSUS HEADWAY
+                    </span>
                   </div>
                   <h3 class="text-lg font-bold text-white">Mode Akun Cent</h3>
                   <p class="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                    Cocok untuk modal mulai <strong>$20</strong>. Di dalam MT5, saldo $20 otomatis dihitung menjadi <strong>2.000 Cent</strong>.
+                    Cocok untuk modal mulai <strong>$20</strong>. Di dalam MT5, saldo $20 otomatis dihitung menjadi <strong>2.000 Cent (USC)</strong>. Hanya tersedia pada broker <strong>Headway</strong>.
                   </p>
 
                   <div class="bg-gray-950/90 rounded-xl p-4 border border-gray-800 space-y-2.5 text-xs sm:text-sm">
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Broker yang Mendukung</span>
+                      <span class="text-amber-400 font-bold">Hanya Headway</span>
+                    </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
                       <span class="text-gray-400">Minimal Saldo</span>
                       <span class="text-amber-400 font-bold">$20 (2.000 Cent)</span>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
-                      <span class="text-gray-400">Ukuran Lot</span>
-                      <span class="text-white font-semibold">0.01 Lot</span>
+                      <span class="text-gray-400">Ukuran Lot Awal</span>
+                      <span class="text-white font-semibold">0.01 Lot (1.5x Layer/Hedge)</span>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
                       <span class="text-gray-400">Batas Posisi</span>
@@ -665,7 +745,7 @@
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
                       <span class="text-gray-400">Target Sekali Tutup</span>
-                      <span class="text-emerald-400 font-bold">10 Cent</span>
+                      <span class="text-emerald-400 font-bold">10 Cent / Siklus</span>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-400">Target Profit Harian</span>
@@ -674,7 +754,7 @@
                   </div>
                 </div>
 
-                <button type="button" onclick="selectEAVersion('CENT')" class="w-full py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-gray-950 border border-amber-500/40 font-bold text-xs sm:text-sm transition">
+                <button id="btn-select-cent" type="button" onclick="selectEAVersion('CENT')" class="w-full py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-gray-950 border border-amber-500/40 font-bold text-xs sm:text-sm transition">
                   Pilih Mode Akun Cent ($20)
                 </button>
               </div>
@@ -684,7 +764,7 @@
                 <div class="space-y-3.5">
                   <div class="flex items-center justify-between">
                     <span class="px-3 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-bold">
-                      MODAL STANDAR • AKUN USD
+                      MODAL STANDAR • AKUN USD ($2.000)
                     </span>
                     <span id="badge-active-standard" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold">
                       AKTIF
@@ -692,17 +772,21 @@
                   </div>
                   <h3 class="text-lg font-bold text-white">Mode Akun Standard</h3>
                   <p class="text-xs sm:text-sm text-gray-300 leading-relaxed">
-                    Cocok untuk modal mulai <strong>$2.000</strong> dengan hitungan saldo dan profit langsung dalam satuan <strong>Dollar ($)</strong>.
+                    Cocok untuk modal mulai <strong>$2.000</strong> dengan hitungan saldo dan profit langsung dalam satuan <strong>Dollar ($)</strong>. Didukung oleh <strong>semua broker</strong>.
                   </p>
 
                   <div class="bg-gray-950/90 rounded-xl p-4 border border-gray-800 space-y-2.5 text-xs sm:text-sm">
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
-                      <span class="text-gray-400">Minimal Saldo</span>
-                      <span class="text-blue-400 font-bold">$2.000</span>
+                      <span class="text-gray-400">Broker yang Mendukung</span>
+                      <span class="text-emerald-400 font-bold">Headway, Exness, XM, MIFX</span>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
-                      <span class="text-gray-400">Ukuran Lot</span>
-                      <span class="text-white font-semibold">0.01 Lot</span>
+                      <span class="text-gray-400">Minimal Saldo</span>
+                      <span class="text-blue-400 font-bold">$2.000 USD</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
+                      <span class="text-gray-400">Ukuran Lot Awal</span>
+                      <span class="text-white font-semibold">0.01 Lot (1.5x Layer/Hedge)</span>
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
                       <span class="text-gray-400">Batas Posisi</span>
@@ -710,7 +794,7 @@
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
                       <span class="text-gray-400">Target Sekali Tutup</span>
-                      <span class="text-emerald-400 font-bold">$10</span>
+                      <span class="text-emerald-400 font-bold">$10 / Siklus</span>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-400">Target Profit Harian</span>
@@ -719,7 +803,7 @@
                   </div>
                 </div>
 
-                <button type="button" onclick="selectEAVersion('STANDARD')" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition">
+                <button id="btn-select-standard" type="button" onclick="selectEAVersion('STANDARD')" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm transition">
                   Pilih Mode Akun Standard ($2.000)
                 </button>
               </div>
@@ -728,153 +812,174 @@
         </section>
 
         <!-- ========================================================== -->
-        <!-- HALAMAN 5: BROKER (HEADWAY, XM, EXNESS + LOGO & KECOCOKAN) -->
+        <!-- HALAMAN 5: BROKER & KONEKSI AKUN REAL MT5 KLIEN            -->
         <!-- ========================================================== -->
         <section id="page-broker" class="hidden space-y-4">
           <div class="glass-card rounded-2xl p-4 sm:p-6 space-y-5">
             <div class="border-b border-gray-800 pb-4">
-              <h2 class="text-base sm:text-lg font-bold text-white">Daftar Broker MT5 & Spesifikasi Jenis Akun (BTCUSD)</h2>
-              <p class="text-xs text-gray-400 mt-1">
-                Perbandingan karakteristik akun <strong>Cent ($20)</strong> dan <strong>Standard ($2.000)</strong> untuk pair <strong>BTCUSD</strong> pada broker Headway, Exness, dan XM.
+              <h2 class="text-base sm:text-lg font-bold text-white">Pilih Broker & Mode Akun (Klik Logo untuk Detail)</h2>
+              <p class="text-xs text-gray-300 mt-1">
+                Ketuk salah satu kartu logo broker di bawah ini untuk melihat detail spesifikasi dan memilih Mode Akun (<strong>Cent $20</strong> atau <strong>Standard $2.000</strong>) sesuai kebijakan masing-masing broker.
               </p>
             </div>
 
-            <div class="grid grid-cols-1 gap-4">
-
-              <!-- 1. HEADWAY -->
-              <div class="p-4 sm:p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-3.5">
-                  <div class="flex items-center gap-3.5">
-                    <!-- Logo Resmi Headway Style -->
-                    <div class="w-14 h-14 rounded-2xl bg-[#0d1526] border border-blue-500/30 flex items-center justify-center shrink-0 shadow-inner">
-                      <svg class="w-9 h-9" viewBox="0 0 40 40" fill="none">
-                        <rect width="40" height="40" rx="8" fill="#1E40AF" fill-opacity="0.2"/>
-                        <path d="M10 10V30M30 10V30M10 20H30" stroke="#3B82F6" stroke-width="4.5" stroke-linecap="round"/>
-                        <circle cx="30" cy="10" r="3" fill="#10B981"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <h3 class="text-base sm:text-lg font-bold text-white">Headway</h3>
-                      <p class="text-xs text-gray-400 font-mono-num">Server MT5: Headway-MT5-Real / Headway-MT5-Demo</p>
-                    </div>
-                  </div>
-                  <div class="flex flex-wrap gap-1.5">
-                    <span class="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-bold">
-                      Cocok: Mode Akun CENT ($20)
-                    </span>
-                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-bold">
-                      Cocok: Mode Akun Standard ($2.000)
-                    </span>
-                  </div>
+            <!-- RINGKASAN KATEGORI DUKUNGAN MODE AKUN -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-2">
+                <div>
+                  <div class="font-bold text-amber-300">Bisa Mode Akun CENT ($20) & Standard ($2.000)</div>
+                  <div class="text-[11px] text-gray-300 mt-0.5">Mendukung trading BTCUSD dalam satuan Cent (USC) maupun USD</div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Kebijakan Akun Cent (BTCUSD)</div>
-                    <div class="text-gray-200 font-medium mt-1">Mendukung penuh trading Crypto (<strong>BTCUSD</strong>) di Akun Cent dengan saldo dalam satuan <strong>USC (2.000 Cent = $20)</strong>.</div>
-                  </div>
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Spread & Komisi BTCUSD</div>
-                    <div class="text-gray-200 font-medium mt-1">Floating spread moderat, <strong>0% komisi</strong> pada Akun Cent & Standard, serta bebas biaya inap (Swap-Free).</div>
-                  </div>
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Kesesuaian EA SND V12.55</div>
-                    <div class="text-gray-200 font-medium mt-1">Pilihan utama jika klien ingin menggunakan <strong>Mode Akun Cent ($20)</strong> maupun <strong>Standard ($2.000)</strong>.</div>
-                  </div>
-                </div>
-
-                <div class="flex justify-end">
-                  <button type="button" onclick="switchBroker('Headway', 'Headway-MT5-Real')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition">
-                    Pilih Broker Headway di Aplikasi
-                  </button>
-                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold shrink-0">Headway</span>
               </div>
-
-              <!-- 2. EXNESS -->
-              <div class="p-4 sm:p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-3.5">
-                  <div class="flex items-center gap-3.5">
-                    <!-- Logo Resmi Exness Style (Kuning-Hitam Khas Exness) -->
-                    <div class="w-14 h-14 rounded-2xl bg-[#FFDE02] flex items-center justify-center shrink-0 shadow-md">
-                      <span class="text-gray-950 font-extrabold text-sm tracking-tighter font-sans">exness</span>
-                    </div>
-                    <div>
-                      <h3 class="text-base sm:text-lg font-bold text-white">Exness</h3>
-                      <p class="text-xs text-gray-400 font-mono-num">Server MT5: Exness-MT5Real / Exness-MT5Trial</p>
-                    </div>
-                  </div>
-                  <div class="flex flex-wrap gap-1.5">
-                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-bold">
-                      Sangat Cocok: Mode Akun Standard ($2.000)
-                    </span>
-                  </div>
+              <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-between gap-2">
+                <div>
+                  <div class="font-bold text-blue-300">Hanya Menyediakan Mode Akun Standard ($2.000)</div>
+                  <div class="text-[11px] text-gray-300 mt-0.5">Otomatis mengunci ke Mode Akun Standard ($2.000 USD)</div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Kebijakan Akun Cent vs Standard</div>
-                    <div class="text-gray-200 font-medium mt-1">Pair <strong>BTCUSD</strong> tersedia penuh di <strong>Akun Standard / Pro</strong>. Pada Akun Standard Cent Exness, instrumen Crypto umumnya terbatas (hanya Forex & Gold).</div>
-                  </div>
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Spread & Komisi BTCUSD</div>
-                    <div class="text-gray-200 font-medium mt-1">Spread <strong>BTCUSD sangat rapat & stabil</strong> tanpa komisi di Akun Standard, serta otomatis <strong>Swap-Free</strong> untuk kripto.</div>
-                  </div>
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Kesesuaian EA SND V12.55</div>
-                    <div class="text-gray-200 font-medium mt-1">Sangat ideal untuk klien dengan <strong>Mode Akun Standard ($2.000 USD)</strong> karena spread rapat mempercepat pencapaian Target Group $10.</div>
-                  </div>
-                </div>
-
-                <div class="flex justify-end">
-                  <button type="button" onclick="switchBroker('Exness', 'Exness-MT5Real')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-blue-600 text-gray-100 hover:text-white text-xs font-bold transition">
-                    Pilih Broker Exness di Aplikasi
-                  </button>
-                </div>
+                <span class="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 font-bold shrink-0">Exness • XM • MIFX</span>
               </div>
-
-              <!-- 3. XM -->
-              <div class="p-4 sm:p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800/80 pb-3.5">
-                  <div class="flex items-center gap-3.5">
-                    <!-- Logo Resmi XM Style (Merah-Putih Khas XM) -->
-                    <div class="w-14 h-14 rounded-2xl bg-[#D91C24] flex items-center justify-center shrink-0 shadow-md">
-                      <span class="text-white font-black text-lg tracking-tight font-sans">XM</span>
-                    </div>
-                    <div>
-                      <h3 class="text-base sm:text-lg font-bold text-white">XM Global</h3>
-                      <p class="text-xs text-gray-400 font-mono-num">Server MT5: XMGlobal-MT5 / XMGlobal-MT5 2</p>
-                    </div>
-                  </div>
-                  <div class="flex flex-wrap gap-1.5">
-                    <span class="px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-bold">
-                      Cocok: Mode Akun Standard ($2.000)
-                    </span>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Kebijakan Jenis Akun</div>
-                    <div class="text-gray-200 font-medium mt-1">XM tidak menggunakan satuan saldo USC (2.000 Cent), melainkan sistem <strong>Micro & Standard</strong> dalam satuan mata uang USD langsung.</div>
-                  </div>
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Spread & Komisi BTCUSD</div>
-                    <div class="text-gray-200 font-medium mt-1">Tersedia di akun <strong>Standard & Ultra Low</strong> tanpa komisi tambahan, eksekusi cepat tanpa <em>requote</em>.</div>
-                  </div>
-                  <div class="bg-gray-950/80 p-3 rounded-xl border border-gray-800/70">
-                    <div class="text-gray-400 text-[11px]">Kesesuaian EA SND V12.55</div>
-                    <div class="text-gray-200 font-medium mt-1">Cocok digunakan untuk <strong>Mode Akun Standard ($2.000 USD)</strong> karena rumus saldo acuan EA membaca satuan USD penuh.</div>
-                  </div>
-                </div>
-
-                <div class="flex justify-end">
-                  <button type="button" onclick="switchBroker('XM', 'XMGlobal-MT5 2')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-blue-600 text-gray-100 hover:text-white text-xs font-bold transition">
-                    Pilih Broker XM di Aplikasi
-                  </button>
-                </div>
-              </div>
-
             </div>
+
+            <!-- GRID 4 KARTU LOGO BROKER (KLIK UNTUK MENAMPILKAN DETAIL) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <!-- Card 1: HEADWAY -->
+              <button type="button" id="broker-card-Headway" onclick="inspectBrokerCard('Headway')" class="p-4 rounded-2xl bg-gray-900/95 border-2 border-blue-500 flex flex-col items-center text-center gap-2.5 hover:bg-gray-800/80 transition cursor-pointer group">
+                <div class="w-16 h-16 rounded-2xl bg-[#0d1526] border border-blue-500/40 flex items-center justify-center shadow-md group-hover:scale-105 transition">
+                  <svg class="w-10 h-10" viewBox="0 0 40 40" fill="none">
+                    <rect width="40" height="40" rx="8" fill="#1E40AF" fill-opacity="0.25"/>
+                    <path d="M10 10V30M30 10V30M10 20H30" stroke="#3B82F6" stroke-width="4.5" stroke-linecap="round"/>
+                    <circle cx="30" cy="10" r="3" fill="#10B981"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Headway</div>
+                  <div class="text-[10px] text-gray-400">Klik untuk detail</div>
+                </div>
+                <span class="px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold">
+                  CENT ($20) & STD
+                </span>
+              </button>
+
+              <!-- Card 2: EXNESS -->
+              <button type="button" id="broker-card-Exness" onclick="inspectBrokerCard('Exness')" class="p-4 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col items-center text-center gap-2.5 hover:bg-gray-800/80 transition cursor-pointer group">
+                <div class="w-16 h-16 rounded-2xl bg-[#FFDE02] flex items-center justify-center shadow-md group-hover:scale-105 transition">
+                  <span class="text-gray-950 font-extrabold text-base tracking-tighter font-sans">exness</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Exness</div>
+                  <div class="text-[10px] text-gray-400">Klik untuk detail</div>
+                </div>
+                <span class="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-bold">
+                  HANYA STANDARD
+                </span>
+              </button>
+
+              <!-- Card 3: XM -->
+              <button type="button" id="broker-card-XM" onclick="inspectBrokerCard('XM')" class="p-4 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col items-center text-center gap-2.5 hover:bg-gray-800/80 transition cursor-pointer group">
+                <div class="w-16 h-16 rounded-2xl bg-[#D91C24] flex items-center justify-center shadow-md group-hover:scale-105 transition">
+                  <span class="text-white font-black text-xl tracking-tight font-sans">XM</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">XM Global</div>
+                  <div class="text-[10px] text-gray-400">Klik untuk detail</div>
+                </div>
+                <span class="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-bold">
+                  HANYA STANDARD
+                </span>
+              </button>
+
+              <!-- Card 4: MIFX -->
+              <button type="button" id="broker-card-MIFX" onclick="inspectBrokerCard('MIFX')" class="p-4 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col items-center text-center gap-2.5 hover:bg-gray-800/80 transition cursor-pointer group">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00529B] to-[#00A859] flex flex-col items-center justify-center shadow-md group-hover:scale-105 transition">
+                  <span class="text-white font-black text-base tracking-wider font-sans leading-none">MIFX</span>
+                  <span class="text-[8px] text-emerald-100 font-bold tracking-widest mt-0.5">MONEX</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">MIFX</div>
+                  <div class="text-[10px] text-gray-400">Klik untuk detail</div>
+                </div>
+                <span class="px-2 py-0.5 rounded-md bg-blue-500/20 border border-blue-500/40 text-blue-300 text-[10px] font-bold">
+                  HANYA STANDARD
+                </span>
+              </button>
+            </div>
+
+            <!-- PANEL DETAIL BROKER & PILIHAN MODE AKUN TERPADU (MUNCUL SAAT LOGO DIKLIK) -->
+            <div id="broker-detail-panel" class="p-4 sm:p-5 rounded-2xl bg-[#0d1527] border-2 border-blue-500/50 space-y-4 shadow-xl">
+              <!-- Diisi dinamis oleh inspectBrokerCard(brokerName) di app.js -->
+            </div>
+          </div>
+
+          <!-- PANDUAN & FORM KONEKSI AKUN REAL MT5 KLIEN KE SERVER VPS (UNTUK KLIEN AWAM) -->
+          <div class="glass-card rounded-2xl p-4 sm:p-6 space-y-5">
+            <div class="border-b border-gray-800 pb-3.5">
+              <div class="flex items-center justify-between gap-2">
+                <h3 class="text-sm sm:text-base font-bold text-white">Panduan & Koneksi Akun Real MT5 Klien (Tanpa Sewa VPS Sendiri)</h3>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">RAMAH PEMULA</span>
+              </div>
+              <p class="text-xs text-gray-300 mt-1">
+                Klien <strong>tidak perlu repot menyewa VPS sendiri atau memasang file robot (.mq5) di laptop</strong>. Seluruh hubungan Terminal MT5, EA, dan Server VPS 24 jam sudah disiapkan oleh sistem ini.
+              </p>
+            </div>
+
+            <!-- 3 Langkah Mudah untuk Klien -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div class="p-3.5 rounded-xl bg-gray-900/95 border border-gray-800 space-y-1.5">
+                <div class="text-blue-400 font-bold">Langkah 1: Pilih Broker & Mode Akun</div>
+                <p class="text-gray-300 leading-relaxed">
+                  Jika sudah punya akun di <strong>Headway / Exness / XM / MIFX</strong>, cukup klik logo broker Anda di atas. Sistem otomatis menyesuaikan Versi EA (<strong>Cent $20</strong> khusus Headway, atau <strong>Standard $2.000</strong> untuk semua broker).
+                </p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-gray-900/95 border border-gray-800 space-y-1.5">
+                <div class="text-amber-400 font-bold">Langkah 2: Isi Login MT5 di Bawah</div>
+                <p class="text-gray-300 leading-relaxed">
+                  Masukkan <strong>Nomor Login MT5</strong>, <strong>Server Broker</strong>, dan <strong>Password Trading</strong> pada formulir di bawah ini. Sistem akan menghubungkan akun MT5 Anda langsung ke <strong>Server VPS EA SND V12.55</strong>.
+                </p>
+              </div>
+              <div class="p-3.5 rounded-xl bg-gray-900/95 border border-gray-800 space-y-1.5">
+                <div class="text-emerald-400 font-bold">Langkah 3: Pantau Profit dari HP</div>
+                <p class="text-gray-300 leading-relaxed">
+                  Setelah terhubung ke VPS, robot langsung bekerja otomatis 24 jam. Anda tinggal memantau posisi terbuka, durasi floating, dan akumulasi profit harian lewat aplikasi ini.
+                </p>
+              </div>
+            </div>
+
+            <!-- Form Langsung Koneksi Akun MT5 Klien ke VPS -->
+            <form onsubmit="submitClientRealAccountConnection(event)" class="p-4 rounded-2xl bg-gray-950/90 border border-gray-800 space-y-3.5">
+              <div class="text-xs font-bold text-white flex items-center justify-between">
+                <span>Formulir Koneksi Akun MT5 Klien ke Server VPS EA</span>
+                <span id="conn-form-mode-badge" class="px-2.5 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-mono-num">Headway • STANDARD</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <label class="block text-gray-400 mb-1">Broker & Mode EA</label>
+                  <input id="conn-broker-readonly" type="text" value="Headway (Mode Standard)" readonly class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-gray-200 font-semibold" />
+                </div>
+                <div>
+                  <label class="block text-gray-400 mb-1">Server MT5 Broker</label>
+                  <input id="conn-server-input" type="text" value="Headway-MT5-Real" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono-num focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-gray-400 mb-1">Nomor Login Akun MT5</label>
+                  <input id="conn-login-input" type="number" placeholder="Contoh: 88504219" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono-num focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                  <label class="block text-gray-400 mb-1">Password Trading MT5</label>
+                  <input id="conn-pass-input" type="password" placeholder="Password MT5 Anda" required class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-white font-mono-num focus:outline-none focus:border-blue-500" />
+                </div>
+              </div>
+
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <span class="text-[11px] text-gray-400">
+                  🔒 Kredensial digunakan khusus untuk mengaitkan akun MT5 Anda ke terminal VPS EA <code class="text-blue-300">SND V12.55</code>.
+                </span>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/30 transition shrink-0">
+                  Hubungkan Akun MT5 ke VPS & Aktifkan EA
+                </button>
+              </div>
+            </form>
           </div>
         </section>
 
@@ -1180,6 +1285,10 @@ function updateHeaderBtcBadge(price) {
 // STANDALONE FALLBACK STATE (Agar bisa di-host di GitHub Pages / Vercel 24 Jam)
 // ============================================================================
 function buildStandaloneState() {
+  if (activeBrokerName !== "Headway" && activeEAVersion === "CENT") {
+    activeEAVersion = "STANDARD";
+    localStorage.setItem("eamon_ea_version", "STANDARD");
+  }
   const isCent = activeEAVersion === "CENT";
   const now = new Date();
   const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -1187,6 +1296,7 @@ function buildStandaloneState() {
     Headway: "Headway-MT5-Real",
     Exness: "Exness-MT5Real",
     XM: "XMGlobal-MT5 2",
+    MIFX: "MIFX-Live",
   };
   const symName = isCent ? "BTCUSDc" : "BTCUSD";
 
@@ -1423,9 +1533,263 @@ function switchPage(pageName) {
 }
 
 // ============================================================================
-// PILIH EA VERSI (CENT $20 vs STANDARD $2000) & BROKER
+// PILIH EA VERSI (CENT $20 vs STANDARD $2000) & BROKER TERPADU
 // ============================================================================
+const BROKER_SPECS = {
+  Headway: {
+    name: "Headway",
+    fullName: "Headway Markets Ltd",
+    server: "Headway-MT5-Real",
+    supportsCent: true,
+    modesLabel: "Bisa Mode Akun CENT ($20) & Standard ($2.000)",
+    policyDesc:
+      "Mendukung penuh trading Crypto (BTCUSD) di Akun Cent dengan saldo dalam satuan USC (2.000 Cent = $20) maupun Akun Standard ($2.000 USD).",
+    spreadDesc:
+      "Floating spread moderat, 0% komisi pada Akun Cent & Standard, serta bebas biaya inap (Swap-Free).",
+    suitabilityDesc:
+      "Satu-satunya broker yang menyediakan pilihan lengkap: Mode Akun Cent ($20) maupun Mode Akun Standard ($2.000).",
+    logoHtml: `<div class="w-14 h-14 rounded-2xl bg-[#0d1526] border border-blue-500/40 flex items-center justify-center shrink-0 shadow-md">
+      <svg class="w-9 h-9" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="8" fill="#1E40AF" fill-opacity="0.25"/>
+        <path d="M10 10V30M30 10V30M10 20H30" stroke="#3B82F6" stroke-width="4.5" stroke-linecap="round"/>
+        <circle cx="30" cy="10" r="3" fill="#10B981"/>
+      </svg>
+    </div>`,
+  },
+  Exness: {
+    name: "Exness",
+    fullName: "Exness Technologies Ltd",
+    server: "Exness-MT5Real",
+    supportsCent: false,
+    modesLabel: "Hanya Mode Akun Standard ($2.000)",
+    policyDesc:
+      "Pada Exness, pair Crypto (BTCUSD) hanya tersedia di Akun Standard / Pro. Akun Standard Cent Exness tidak menyediakan instrumen BTCUSD (hanya Forex & Gold).",
+    spreadDesc:
+      "Spread BTCUSD sangat rapat & stabil tanpa komisi di Akun Standard, serta otomatis Swap-Free untuk kripto.",
+    suitabilityDesc:
+      "Khusus untuk klien dengan Mode Akun Standard ($2.000 USD). Ketika memilih Exness, Mode Akun otomatis dikunci ke Standard.",
+    logoHtml: `<div class="w-14 h-14 rounded-2xl bg-[#FFDE02] flex items-center justify-center shrink-0 shadow-md">
+      <span class="text-gray-950 font-extrabold text-sm tracking-tighter font-sans">exness</span>
+    </div>`,
+  },
+  XM: {
+    name: "XM",
+    fullName: "XM Global Limited",
+    server: "XMGlobal-MT5 2",
+    supportsCent: false,
+    modesLabel: "Hanya Mode Akun Standard ($2.000)",
+    policyDesc:
+      "XM tidak menyediakan akun bersaldo satuan Cent (USC), melainkan menggunakan satuan mata uang USD langsung pada akun Standard & Ultra Low.",
+    spreadDesc:
+      "Tersedia di akun Standard & Ultra Low tanpa komisi tambahan, eksekusi cepat tanpa requote.",
+    suitabilityDesc:
+      "Khusus untuk klien dengan Mode Akun Standard ($2.000 USD). Ketika memilih XM, Mode Akun otomatis dikunci ke Standard.",
+    logoHtml: `<div class="w-14 h-14 rounded-2xl bg-[#D91C24] flex items-center justify-center shrink-0 shadow-md">
+      <span class="text-white font-black text-lg tracking-tight font-sans">XM</span>
+    </div>`,
+  },
+  MIFX: {
+    name: "MIFX",
+    fullName: "PT Monex Investindo Futures (MIFX)",
+    server: "MIFX-Live",
+    supportsCent: false,
+    modesLabel: "Hanya Mode Akun Standard ($2.000)",
+    policyDesc:
+      "MIFX (Broker lokal teregulasi Bappebti) hanya menyediakan jenis akun Standard / Ultra Low / Pro dan tidak memiliki jenis Akun Cent (USC).",
+    spreadDesc:
+      "Eksekusi pasar teregulasi Indonesia (Bappebti / JFX / KBI) dengan dukungan penuh MetaTrader 5.",
+    suitabilityDesc:
+      "Cocok untuk klien yang sudah memiliki akun MIFX dengan Mode Akun Standard ($2.000 USD). Otomatis mengunci ke Mode Standard.",
+    logoHtml: `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00529B] to-[#00A859] flex flex-col items-center justify-center shrink-0 shadow-md">
+      <span class="text-white font-black text-sm tracking-wider font-sans leading-none">MIFX</span>
+      <span class="text-[7px] text-emerald-100 font-bold tracking-widest mt-0.5">MONEX</span>
+    </div>`,
+  },
+};
+
+let inspectedBroker = localStorage.getItem("eamon_broker_name") || "Headway";
+
+function inspectBrokerCard(brokerName) {
+  const b = BROKER_SPECS[brokerName] || BROKER_SPECS.Headway;
+  inspectedBroker = b.name;
+
+  // Highlight selected logo card
+  for (const key of ["Headway", "Exness", "XM", "MIFX"]) {
+    const cardEl = document.getElementById(`broker-card-${key}`);
+    if (cardEl) {
+      cardEl.className =
+        key === b.name
+          ? "p-4 rounded-2xl bg-blue-950/40 border-2 border-blue-500 flex flex-col items-center text-center gap-2.5 shadow-lg shadow-blue-900/20 transition cursor-pointer group"
+          : "p-4 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col items-center text-center gap-2.5 hover:bg-gray-800/80 transition cursor-pointer group";
+    }
+  }
+
+  const panel = document.getElementById("broker-detail-panel");
+  if (!panel) return;
+
+  const isCurrentBroker = activeBrokerName === b.name;
+  const activeTag = isCurrentBroker
+    ? `<span class="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[11px] font-bold">✓ BROKER AKTIF SAAT INI (${activeEAVersion})</span>`
+    : `<span class="px-2.5 py-1 rounded-full bg-gray-800 text-gray-300 text-[11px] font-semibold">Detail Spesifikasi Broker</span>`;
+
+  const actionButtonsHtml = b.supportsCent
+    ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+        <button type="button" onclick="chooseBrokerAndMode('${b.name}', '${b.server}', 'CENT')" class="py-3 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 ${
+          isCurrentBroker && activeEAVersion === "CENT"
+            ? "bg-amber-500 text-gray-950 shadow-lg shadow-amber-900/30"
+            : "bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-gray-950 border border-amber-500/40"
+        }">
+          <span>Gunakan ${b.name} • Mode Akun CENT ($20)</span>
+        </button>
+        <button type="button" onclick="chooseBrokerAndMode('${b.name}', '${b.server}', 'STANDARD')" class="py-3 px-4 rounded-xl font-bold text-xs transition flex items-center justify-center gap-2 ${
+          isCurrentBroker && activeEAVersion === "STANDARD"
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-900/40"
+            : "bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/40"
+        }">
+          <span>Gunakan ${b.name} • Mode Akun Standard ($2.000)</span>
+        </button>
+      </div>`
+    : `<div class="space-y-2 pt-2">
+        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300">
+          🔒 <strong>Catatan Kebijakan ${b.name}:</strong> Broker ini tidak menyediakan Akun Cent untuk BTCUSD, sehingga pilihan Mode Akun dikunci hanya pada <strong>Mode Akun Standard ($2.000)</strong>.
+        </div>
+        <button type="button" onclick="chooseBrokerAndMode('${b.name}', '${b.server}', 'STANDARD')" class="w-full py-3 px-4 rounded-xl font-bold text-xs bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/30 transition">
+          Gunakan Broker ${b.name} • Mode Akun Standard ($2.000)
+        </button>
+      </div>`;
+
+  panel.innerHTML = `
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-3.5">
+      <div class="flex items-center gap-3.5">
+        ${b.logoHtml}
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-base sm:text-lg font-bold text-white">${b.name}</h3>
+            <span class="px-2 py-0.5 rounded bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[10px] font-bold">${b.modesLabel}</span>
+          </div>
+          <p class="text-xs text-gray-400 font-mono-num mt-0.5">${b.fullName} • Server: ${b.server}</p>
+        </div>
+      </div>
+      ${activeTag}
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+      <div class="bg-gray-950/90 p-3.5 rounded-xl border border-gray-800">
+        <div class="text-gray-400 text-[11px] font-semibold">1. Ketersediaan Mode Akun</div>
+        <div class="text-gray-200 mt-1 leading-relaxed">${b.policyDesc}</div>
+      </div>
+      <div class="bg-gray-950/90 p-3.5 rounded-xl border border-gray-800">
+        <div class="text-gray-400 text-[11px] font-semibold">2. Karakteristik Spread & Eksekusi</div>
+        <div class="text-gray-200 mt-1 leading-relaxed">${b.spreadDesc}</div>
+      </div>
+      <div class="bg-gray-950/90 p-3.5 rounded-xl border border-gray-800">
+        <div class="text-gray-400 text-[11px] font-semibold">3. Pengaturan Mode EA Otomatis</div>
+        <div class="text-gray-200 mt-1 leading-relaxed">${b.suitabilityDesc}</div>
+      </div>
+    </div>
+
+    ${actionButtonsHtml}
+  `;
+}
+
+async function chooseBrokerAndMode(brokerName, serverName, mode) {
+  const b = BROKER_SPECS[brokerName] || BROKER_SPECS.Headway;
+  const validMode = b.supportsCent && mode === "CENT" ? "CENT" : "STANDARD";
+  activeBrokerName = b.name;
+  activeEAVersion = validMode;
+  localStorage.setItem("eamon_broker_name", b.name);
+  localStorage.setItem("eamon_ea_version", validMode);
+
+  await switchBroker(b.name, serverName || b.server);
+  await selectEAVersion(validMode);
+  inspectBrokerCard(b.name);
+}
+
+function onLoginBrokerChange() {
+  const brokerSel = document.getElementById("login-broker");
+  const verSel = document.getElementById("login-ea-version");
+  const centOpt = document.getElementById("login-opt-cent");
+  const hintEl = document.getElementById("login-broker-mode-hint");
+  if (!brokerSel || !verSel) return;
+
+  const chosen = brokerSel.value;
+  const supportsCent = chosen === "Headway";
+
+  if (centOpt) {
+    centOpt.disabled = !supportsCent;
+    centOpt.textContent = supportsCent ? "Akun CENT ($20)" : "Akun CENT (Tidak Tersedia)";
+  }
+  if (!supportsCent) {
+    verSel.value = "STANDARD";
+  }
+
+  if (hintEl) {
+    if (supportsCent) {
+      hintEl.className =
+        "text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 rounded-lg px-2.5 py-1.5 leading-snug";
+      hintEl.innerHTML =
+        "✓ Broker <strong>Headway</strong> mendukung pilihan <strong>Akun CENT ($20)</strong> maupun <strong>Standard ($2.000)</strong>.";
+    } else {
+      hintEl.className =
+        "text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/25 rounded-lg px-2.5 py-1.5 leading-snug";
+      hintEl.innerHTML = `🔒 Broker <strong>${chosen}</strong> hanya menyediakan <strong>Mode Akun Standard ($2.000)</strong> untuk BTCUSD.`;
+    }
+  }
+}
+
+async function submitClientRealAccountConnection(e) {
+  if (e) e.preventDefault();
+  const srvInp = document.getElementById("conn-server-input");
+  const loginInp = document.getElementById("conn-login-input");
+  const passInp = document.getElementById("conn-pass-input");
+
+  const srv = srvInp && srvInp.value.trim() ? srvInp.value.trim() : "Headway-MT5-Real";
+  const loginId = loginInp && loginInp.value ? Number(loginInp.value) : 88504219;
+  const pwd = passInp && passInp.value ? passInp.value : "";
+
+  try {
+    const res = await fetch("/api/broker/select", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        broker: activeBrokerName,
+        server: srv,
+        login: loginId,
+        password: pwd,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.state) updateDashboard(data.state);
+      showToast(
+        `Akun MT5 #${loginId} (${activeBrokerName} • Mode ${activeEAVersion}) berhasil didaftarkan ke Server VPS EA!`
+      );
+      if (passInp) passInp.value = "";
+      return;
+    }
+  } catch (err) {}
+
+  updateDashboard(buildStandaloneState());
+  const accSub = document.getElementById("account-subtitle");
+  if (accSub) accSub.textContent = `Login MT5: #${loginId} • ${srv}`;
+  showToast(
+    `Akun MT5 #${loginId} (${activeBrokerName} • Mode ${activeEAVersion}) berhasil dihubungkan ke profil VPS EA!`
+  );
+  if (passInp) passInp.value = "";
+}
+
 async function selectEAVersion(mode) {
+  const b = BROKER_SPECS[activeBrokerName] || BROKER_SPECS.Headway;
+  if (!b.supportsCent && mode === "CENT") {
+    activeEAVersion = "STANDARD";
+    localStorage.setItem("eamon_ea_version", "STANDARD");
+    updateEAVersionUI("STANDARD");
+    showToast(
+      `🔒 Broker ${activeBrokerName} hanya mendukung Mode Akun Standard ($2.000). Pilih broker Headway jika ingin menggunakan Akun Cent ($20).`
+    );
+    return;
+  }
+
   const cleanMode = mode === "CENT" ? "CENT" : "STANDARD";
   activeEAVersion = cleanMode;
   localStorage.setItem("eamon_ea_version", cleanMode);
@@ -1448,30 +1812,44 @@ async function selectEAVersion(mode) {
   updateDashboard(buildStandaloneState());
   showToast(
     cleanMode === "CENT"
-      ? "Mode EA diubah ke Akun CENT (Min. Balance $20 / 2.000 Cent)."
-      : "Mode EA diubah ke Akun STANDARD (Min. Balance $2.000 USD)."
+      ? `Mode EA (${activeBrokerName}) diatur ke Akun CENT (Min. Balance $20 / 2.000 Cent).`
+      : `Mode EA (${activeBrokerName}) diatur ke Akun STANDARD (Min. Balance $2.000 USD).`
   );
 }
 
 async function switchBroker(brokerName, serverName = "") {
-  activeBrokerName = brokerName;
-  localStorage.setItem("eamon_broker_name", brokerName);
+  const b = BROKER_SPECS[brokerName] || BROKER_SPECS.Headway;
+  activeBrokerName = b.name;
+  localStorage.setItem("eamon_broker_name", b.name);
+
+  // Kunci otomatis ke STANDARD jika broker yang dipilih tidak menyediakan Akun Cent untuk BTCUSD
+  if (!b.supportsCent && activeEAVersion === "CENT") {
+    activeEAVersion = "STANDARD";
+    localStorage.setItem("eamon_ea_version", "STANDARD");
+  }
+
   try {
     const res = await fetch("/api/broker/select", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ broker: brokerName, server: serverName }),
+      body: JSON.stringify({ broker: b.name, server: serverName || b.server }),
     });
     if (res.ok) {
       const data = await res.json();
-      showToast(data.message || `Broker diubah ke ${brokerName}`);
+      showToast(data.message || `Broker diubah ke ${b.name}`);
       if (data.state) updateDashboard(data.state);
+      inspectBrokerCard(b.name);
       return;
     }
   } catch (e) {}
 
   updateDashboard(buildStandaloneState());
-  showToast(`Broker aktif diatur ke ${brokerName}.`);
+  inspectBrokerCard(b.name);
+  showToast(
+    b.supportsCent
+      ? `Broker aktif diatur ke ${b.name} (Mendukung Cent & Standard).`
+      : `Broker aktif diatur ke ${b.name} (Mode Akun otomatis dikunci ke Standard $2.000).`
+  );
 }
 
 function fillDemoAccount(accName) {
@@ -1781,6 +2159,10 @@ function initEquityChart() {
 }
 
 function updateEAVersionUI(versionMode) {
+  const bSpec = BROKER_SPECS[activeBrokerName] || BROKER_SPECS.Headway;
+  if (!bSpec.supportsCent && versionMode === "CENT") {
+    versionMode = "STANDARD";
+  }
   activeEAVersion = versionMode === "CENT" ? "CENT" : "STANDARD";
   const isCent = activeEAVersion === "CENT";
 
@@ -1791,9 +2173,39 @@ function updateEAVersionUI(versionMode) {
   const cardCent = document.getElementById("card-version-cent");
   const cardStd = document.getElementById("card-version-standard");
   const badgeCent = document.getElementById("badge-active-cent");
+  const badgeLockedCent = document.getElementById("badge-locked-cent");
+  const btnSelectCent = document.getElementById("btn-select-cent");
   const badgeStd = document.getElementById("badge-active-standard");
+  const eavBrokerEl = document.getElementById("eaversion-current-broker");
+  const eavBannerEl = document.getElementById("eaversion-broker-policy-banner");
+  const connBrokerInp = document.getElementById("conn-broker-readonly");
+  const connServerInp = document.getElementById("conn-server-input");
+  const connModeBadge = document.getElementById("conn-form-mode-badge");
   const symEl = document.getElementById("overview-btc-symbol");
   if (symEl) symEl.textContent = isCent ? "BTCUSDc" : "BTCUSD";
+
+  if (eavBrokerEl) eavBrokerEl.textContent = bSpec.name;
+  if (eavBannerEl) {
+    if (bSpec.supportsCent) {
+      eavBannerEl.className =
+        "p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 leading-relaxed";
+      eavBannerEl.innerHTML = `✓ Broker <strong>${bSpec.name}</strong> mendukung pilihan <strong>Mode Akun Cent ($20)</strong> maupun <strong>Mode Akun Standard ($2.000)</strong> untuk instrumen BTCUSD.`;
+    } else {
+      eavBannerEl.className =
+        "p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 leading-relaxed";
+      eavBannerEl.innerHTML = `🔒 Broker <strong>${bSpec.name}</strong> hanya menyediakan <strong>Mode Akun Standard ($2.000)</strong> untuk BTCUSD. Mode Akun Cent dikunci otomatis agar sesuai dengan jenis akun asli di broker ${bSpec.name}.`;
+    }
+  }
+
+  if (connBrokerInp) {
+    connBrokerInp.value = `${bSpec.name} (Mode ${isCent ? "Akun CENT $20" : "Standard $2.000"})`;
+  }
+  if (connServerInp && (!connServerInp.dataset.userEdited || connServerInp.value === "")) {
+    connServerInp.value = bSpec.server;
+  }
+  if (connModeBadge) {
+    connModeBadge.textContent = `${bSpec.name} • ${isCent ? "CENT ($20)" : "STANDARD ($2000)"}`;
+  }
 
   if (hdrVer) {
     hdrVer.textContent = isCent ? "AKUN CENT ($20)" : "STANDARD ($2000)";
@@ -1808,24 +2220,51 @@ function updateEAVersionUI(versionMode) {
       : "px-2 py-0.5 text-[10px] rounded bg-emerald-500/15 text-emerald-400 font-mono-num font-bold";
   }
   if (sideLbl) {
-    sideLbl.textContent = isCent ? "Mode: Akun CENT ($20)" : "Mode: Akun Standard ($2000)";
+    sideLbl.textContent = `${bSpec.name} • ${isCent ? "Akun CENT ($20)" : "Standard ($2000)"}`;
   }
   if (balSub) {
     balSub.textContent = isCent
-      ? "Mode Akun CENT • 2,101.35 USC Setara ≈ $21.01 USD (Modal Awal $20)"
-      : "Mode Akun STANDARD • Saldo Acuan $2,000.00 USD";
+      ? `Broker ${bSpec.name} • Mode Akun CENT (2,000 USC = $20 USD)`
+      : `Broker ${bSpec.name} • Mode Akun STANDARD (Saldo Acuan $2,000.00 USD)`;
   }
   if (cardCent && cardStd && badgeCent && badgeStd) {
-    if (isCent) {
-      cardCent.className = "p-5 rounded-2xl bg-gray-900/95 border-2 border-amber-500/60 flex flex-col justify-between gap-4";
-      cardStd.className = "p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4";
-      badgeCent.classList.remove("hidden");
-      badgeStd.classList.add("hidden");
-    } else {
-      cardStd.className = "p-5 rounded-2xl bg-gray-900/95 border-2 border-blue-500/60 flex flex-col justify-between gap-4";
-      cardCent.className = "p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4";
-      badgeStd.classList.remove("hidden");
+    if (!bSpec.supportsCent) {
+      cardCent.className =
+        "p-5 rounded-2xl bg-gray-950/60 border border-gray-800/70 opacity-65 flex flex-col justify-between gap-4";
+      cardStd.className =
+        "p-5 rounded-2xl bg-gray-900/95 border-2 border-blue-500/60 flex flex-col justify-between gap-4";
       badgeCent.classList.add("hidden");
+      if (badgeLockedCent) badgeLockedCent.classList.remove("hidden");
+      badgeStd.classList.remove("hidden");
+      if (btnSelectCent) {
+        btnSelectCent.textContent = `🔒 Tidak Tersedia di ${bSpec.name} (Khusus Headway)`;
+        btnSelectCent.className =
+          "w-full py-3 rounded-xl bg-gray-800 text-gray-400 border border-gray-700 font-bold text-xs sm:text-sm cursor-not-allowed";
+      }
+    } else {
+      if (badgeLockedCent) badgeLockedCent.classList.add("hidden");
+      if (btnSelectCent) {
+        btnSelectCent.textContent = isCent
+          ? "✓ Mode Akun Cent ($20) Aktif"
+          : "Pilih Mode Akun Cent ($20)";
+        btnSelectCent.className =
+          "w-full py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-gray-950 border border-amber-500/40 font-bold text-xs sm:text-sm transition";
+      }
+      if (isCent) {
+        cardCent.className =
+          "p-5 rounded-2xl bg-gray-900/95 border-2 border-amber-500/60 flex flex-col justify-between gap-4";
+        cardStd.className =
+          "p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4";
+        badgeCent.classList.remove("hidden");
+        badgeStd.classList.add("hidden");
+      } else {
+        cardStd.className =
+          "p-5 rounded-2xl bg-gray-900/95 border-2 border-blue-500/60 flex flex-col justify-between gap-4";
+        cardCent.className =
+          "p-5 rounded-2xl bg-gray-900/95 border border-gray-800 flex flex-col justify-between gap-4";
+        badgeStd.classList.remove("hidden");
+        badgeCent.classList.add("hidden");
+      }
     }
   }
 }
@@ -1838,6 +2277,11 @@ function updateDashboard(state) {
   const acc = state.account || {};
   const m = state.metrics || {};
   const conn = state.connection || {};
+
+  const resolvedBroker = acc.broker || (acc.server ? acc.server.split("-")[0] : activeBrokerName);
+  if (BROKER_SPECS[resolvedBroker]) {
+    activeBrokerName = resolvedBroker;
+  }
 
   if (acc.btc_price && Number(acc.btc_price) > 1000) {
     liveBtcPrice = Number(acc.btc_price);
@@ -1869,7 +2313,6 @@ function updateDashboard(state) {
   const accSub = document.getElementById("account-subtitle");
   if (accSub) accSub.textContent = `Login MT5: #${acc.login || "-"} • ${acc.server || "-"}`;
 
-  const resolvedBroker = acc.broker || (acc.server ? acc.server.split("-")[0] : activeBrokerName);
   const brokerBadge = document.getElementById("header-broker-badge");
   const sideBrokerBadge = document.getElementById("side-broker-badge");
   if (brokerBadge) brokerBadge.textContent = resolvedBroker;
@@ -2186,6 +2629,22 @@ function formatDealDateTime(unixSec) {
   return `${day} ${mon} ${hm}`;
 }
 
+function formatFloatingDuration(openUnixSec) {
+  if (!openUnixSec) return "Baru masuk";
+  const nowSec = Math.floor(Date.now() / 1000);
+  const diffSec = Math.max(1, nowSec - Number(openUnixSec));
+  const hrs = Math.floor(diffSec / 3600);
+  const mins = Math.floor((diffSec % 3600) / 60);
+  const secs = diffSec % 60;
+  if (hrs > 0) {
+    return `${hrs}j ${mins}m ${secs}d`;
+  }
+  if (mins > 0) {
+    return `${mins}m ${secs}d`;
+  }
+  return `${secs} detik`;
+}
+
 function renderOpenPositions(positions) {
   const tbody = document.getElementById("open-positions-tbody");
   const filtered = positions || [];
@@ -2207,7 +2666,7 @@ function renderOpenPositions(positions) {
   }
 
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">Tidak ada posisi terbuka saat ini (Status EA: LOCKED • Menunggu Jam 00:00).</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">Tidak ada posisi terbuka saat ini (Status EA: LOCKED • Menunggu Jam 00:00).</td></tr>`;
     return;
   }
 
@@ -2215,22 +2674,33 @@ function renderOpenPositions(positions) {
     .map((p) => {
       const isBuy = String(p.type).toUpperCase() === "BUY";
       const net = Number(p.net_profit || 0);
+      const entryTimeStr = formatTime(p.time);
+      const durationStr = formatFloatingDuration(p.time);
+      const commentBadge = p.comment
+        ? `<span class="ml-1 px-1.5 py-0.5 rounded bg-gray-800 text-gray-300 text-[9px] font-semibold">${p.comment}</span>`
+        : "";
       return `
       <tr class="hover:bg-gray-800/40 transition">
-        <td class="py-3 px-2.5 text-gray-300">#${p.ticket}</td>
-        <td class="py-3 px-2.5 font-bold text-white">${p.symbol}</td>
-        <td class="py-3 px-2.5">
+        <td class="py-3 px-2 text-gray-300">#${p.ticket}</td>
+        <td class="py-3 px-2 font-bold text-white">${p.symbol}</td>
+        <td class="py-3 px-2">
           <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
             isBuy ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"
-          }">${p.type}</span>
+          }">${p.type}</span>${commentBadge}
         </td>
-        <td class="py-3 px-2.5 font-semibold text-gray-200">${Number(p.volume).toFixed(2)}</td>
-        <td class="py-3 px-2.5 text-gray-300">${formatPrice(p.symbol, p.price_open)}</td>
-        <td class="py-3 px-2.5 text-white font-semibold">${formatPrice(p.symbol, p.price_current)}</td>
-        <td class="py-3 px-2.5 text-right font-bold ${net >= 0 ? "text-emerald-400" : "text-rose-400"}">
+        <td class="py-3 px-2 font-semibold text-gray-200">${Number(p.volume).toFixed(2)}</td>
+        <td class="py-3 px-2">
+          <div class="text-gray-200 font-semibold">${entryTimeStr}</div>
+          <div class="inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-bold">
+            ⏱️ Floating: ${durationStr}
+          </div>
+        </td>
+        <td class="py-3 px-2 text-gray-300">${formatPrice(p.symbol, p.price_open)}</td>
+        <td class="py-3 px-2 text-white font-semibold">${formatPrice(p.symbol, p.price_current)}</td>
+        <td class="py-3 px-2 text-right font-bold ${net >= 0 ? "text-emerald-400" : "text-rose-400"}">
           ${formatAmount(net, true)}
         </td>
-        <td class="py-3 px-2.5 text-right">
+        <td class="py-3 px-2 text-right">
           <button type="button" onclick="closeSinglePosition(${p.ticket})" class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-600 text-rose-400 hover:text-white text-[11px] font-semibold transition">
             Close
           </button>
@@ -2503,6 +2973,8 @@ function connectWebSocket() {
 document.addEventListener("DOMContentLoaded", async () => {
   const savedUser = localStorage.getItem("eamon_user_name") || "Demo Trader (Publik)";
   applyUserProfile(savedUser);
+  onLoginBrokerChange();
+  inspectBrokerCard(activeBrokerName);
   if (localStorage.getItem("eamon_logged_in") !== "true") {
     const loginScr = document.getElementById("login-screen");
     if (loginScr) loginScr.classList.remove("hidden");
@@ -2534,4 +3006,3 @@ document.addEventListener("DOMContentLoaded", async () => {
 </script>
 </body>
 </html>
-
