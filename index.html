@@ -1373,14 +1373,25 @@ function buildStandaloneState() {
   totalFloating = Number(totalFloating.toFixed(2));
   totalLots = Number(totalLots.toFixed(2));
 
-  // Aturan Hedging (-$5.00) & Martingale ($50)
-  const hasHedge = standalonePositions.some(p => p.comment && p.comment.startsWith("Hedge"));
-  if (totalFloating <= -5.0 && !hasHedge && standalonePositions.length < 5) {
+  // ============================================================================
+  // LOGIKA TRADING SND V12.55 BALANCE SURPLUS (SESUAI ATURAN ASLI)
+  // 1. InpMaxDirPos = 3 (MAKSIMAL 3 POSISI SEARAH, TIDAK BOLEH LEBIH DARI 3x)
+  // 2. InpHedgeFloatLoss = -$5.00 (Hedging Otomatis jika floating loss -$5)
+  // 3. Hedging Bertingkat (Tiered Hedging layer sampai InpMaxDirPos = 3)
+  // 4. InpLayerPriceDist = $50 (Jarak layer $50 konsisten)
+  // 5. InpMultiplier = 1.5 (Lot 0.01 -> 0.02 -> 0.03)
+  // ============================================================================
+  const MAX_DIR_POS = 3;
+  const buyPositions = standalonePositions.filter((p) => p.type === "BUY");
+  const sellPositions = standalonePositions.filter((p) => p.type === "SELL");
+
+  // A. HEDGING OTOMATIS: Jika posisi BUY floating loss <= -$5.00 dan belum ada SELL
+  if (buyPositions.length > 0 && sellPositions.length === 0 && totalFloating <= -5.0) {
     standalonePositions.push({
       ticket: Math.floor(Date.now() / 100) % 80000000 + 20000000,
       symbol: symName,
       type: "SELL",
-      volume: 0.02,
+      volume: 0.02, // InpLot (0.01) * InpMultiplier (1.5) dibulatkan 0.02
       price_open: liveBtcPrice,
       price_current: liveBtcPrice,
       sl: 0.0,
@@ -1394,15 +1405,35 @@ function buildStandaloneState() {
       time: Math.floor(Date.now() / 1000),
     });
   }
+  // Sebaliknya jika posisi SELL floating loss <= -$5.00 dan belum ada BUY
+  else if (sellPositions.length > 0 && buyPositions.length === 0 && totalFloating <= -5.0) {
+    standalonePositions.push({
+      ticket: Math.floor(Date.now() / 100) % 80000000 + 25000000,
+      symbol: symName,
+      type: "BUY",
+      volume: 0.02,
+      price_open: liveBtcPrice,
+      price_current: liveBtcPrice,
+      sl: 0.0,
+      tp: 0.0,
+      swap: 0.0,
+      commission: -0.08,
+      profit: 0.0,
+      net_profit: -0.08,
+      magic: 1255,
+      comment: "Hedge_B",
+      time: Math.floor(Date.now() / 1000),
+    });
+  }
 
-  // Martingale Layer saat drop $50
-  const buyPositions = standalonePositions.filter(p => p.type === "BUY");
-  if (buyPositions.length >= 1 && buyPositions.length < 4) {
-    const lastBuy = buyPositions[buyPositions.length - 1];
+  // B. LAYER BUY: HANYA jika jumlah BUY < MAX_DIR_POS (MAKSIMAL PERSIS 3 POSISI: 1 Init + 2 Layer)
+  const activeBuys = standalonePositions.filter((p) => p.type === "BUY");
+  if (activeBuys.length >= 1 && activeBuys.length < MAX_DIR_POS) {
+    const lastBuy = activeBuys[activeBuys.length - 1];
     if (lastBuy.price_open - liveBtcPrice >= 50.0) {
-      const nextLot = buyPositions.length === 1 ? 0.02 : 0.03;
+      const nextLot = activeBuys.length === 1 ? 0.02 : 0.03;
       standalonePositions.push({
-        ticket: Math.floor(Date.now() / 100) % 80000000 + 30000000,
+        ticket: Math.floor(Date.now() / 100) % 80000000 + 30000000 + activeBuys.length,
         symbol: symName,
         type: "BUY",
         volume: nextLot,
@@ -1415,12 +1446,38 @@ function buildStandaloneState() {
         profit: 0.0,
         net_profit: -0.05 * (nextLot / 0.01),
         magic: 1255,
-        comment: `Martingale_B${buyPositions.length + 1}`,
+        comment: `Layer_B${activeBuys.length}`,
         time: Math.floor(Date.now() / 1000),
       });
     }
   }
 
+  // C. HEDGING BERTINGKAT (TIERED HEDGE): HANYA jika jumlah SELL < MAX_DIR_POS (MAKSIMAL 3 POSISI)
+  const activeSells = standalonePositions.filter((p) => p.type === "SELL");
+  if (activeSells.length >= 1 && activeSells.length < MAX_DIR_POS) {
+    const lastSell = activeSells[activeSells.length - 1];
+    // Jika harga terus bergerak turun sejauh $50 dari SELL sebelumnya
+    if (lastSell.price_open - liveBtcPrice >= 50.0 || liveBtcPrice - lastSell.price_open >= 50.0) {
+      const nextLot = activeSells.length === 1 ? 0.03 : 0.05;
+      standalonePositions.push({
+        ticket: Math.floor(Date.now() / 100) % 80000000 + 40000000 + activeSells.length,
+        symbol: symName,
+        type: "SELL",
+        volume: nextLot,
+        price_open: liveBtcPrice,
+        price_current: liveBtcPrice,
+        sl: 0.0,
+        tp: 0.0,
+        swap: 0.0,
+        commission: -0.05 * (nextLot / 0.01),
+        profit: 0.0,
+        net_profit: -0.05 * (nextLot / 0.01),
+        magic: 1255,
+        comment: `Hedge_S_L${activeSells.length}`,
+        time: Math.floor(Date.now() / 1000),
+      });
+    }
+  }
 
   // Auto-close jika mencapai Target Group 10.00
   if (standalonePositions.length > 0 && totalFloating >= 10.0) {
