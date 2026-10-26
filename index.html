@@ -1020,6 +1020,18 @@ let standaloneStartBalance = 2101.35;
 let standaloneEaEnabled = true;
 let standaloneCustomEaName = localStorage.getItem("eamon_custom_ea_name") || "";
 let standaloneLastCloseTs = 0;
+const _nowDate = new Date();
+const _todayMidnightSec = Math.floor(
+  new Date(_nowDate.getFullYear(), _nowDate.getMonth(), _nowDate.getDate(), 0, 0, 0).getTime() / 1000
+);
+
+// Simpan tanggal pertama kali aplikasi diinstal / dibuka di web agar riwayat dimulai dari tanggal tersebut
+let appInstallTs = Number(localStorage.getItem("eamon_install_ts") || 0);
+if (!appInstallTs || appInstallTs > _todayMidnightSec) {
+  appInstallTs = _todayMidnightSec;
+  localStorage.setItem("eamon_install_ts", String(appInstallTs));
+}
+
 const _nowSec = Math.floor(Date.now() / 1000);
 const _daySec = 86400;
 
@@ -1042,39 +1054,21 @@ let standalonePositions = [
     time: _nowSec - 180,
   },
 ];
+
+// Riwayat transaksi dimulai sejak tanggal aplikasi pertama kali dibuka / diinstal (tanpa transaksi kosong di bulan-bulan lalu)
 let standaloneDeals = [
-  // Minggu Ini (12 transaksi = +101.35)
-  { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.45, net_profit: 10.35, magic: 1255, time: _nowSec - 3600 * 4 },
-  { ticket: 401261, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.15, net_profit: 10.10, magic: 1255, time: _nowSec - 3600 * 5 },
-  { ticket: 401260, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.55, net_profit: 10.45, magic: 1255, time: _nowSec - 3600 * 6 },
-  { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 11.30, net_profit: 11.20, magic: 1255, time: _nowSec - 3600 * 7 },
-  { ticket: 401258, symbol: "BTCUSD", type: "SELL", volume: 0.01, profit: -1.00, net_profit: -1.05, magic: 1255, time: _nowSec - 3600 * 7 - 5 },
-  { ticket: 401257, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.30, net_profit: 10.20, magic: 1255, time: _nowSec - 3600 * 9 },
-  { ticket: 401256, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: _nowSec - 3600 * 11 },
-  { ticket: 401255, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.10, net_profit: 10.05, magic: 1255, time: _nowSec - 3600 * 13 },
-  { ticket: 401254, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 12.50, net_profit: 12.40, magic: 1255, time: _nowSec - 3600 * 15 },
-  { ticket: 401253, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: -2.10, net_profit: -2.15, magic: 1255, time: _nowSec - 3600 * 15 - 5 },
-  { ticket: 401252, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: _nowSec - 3600 * 17 },
-  { ticket: 401251, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: _nowSec - 3600 * 19 },
-  // Bulan Ini (10 - 25 hari lalu)
-  { ticket: 401240, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.40, net_profit: 10.30, magic: 1255, time: _nowSec - _daySec * 10 },
-  { ticket: 401239, symbol: "BTCUSD", type: "SELL", volume: 0.01, profit: 10.20, net_profit: 10.15, magic: 1255, time: _nowSec - _daySec * 12 },
-  { ticket: 401238, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.50, net_profit: 10.40, magic: 1255, time: _nowSec - _daySec * 15 },
-  { ticket: 401237, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.35, net_profit: 10.25, magic: 1255, time: _nowSec - _daySec * 18 },
-  { ticket: 401236, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.55, net_profit: 10.50, magic: 1255, time: _nowSec - _daySec * 21 },
-  { ticket: 401235, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: _nowSec - _daySec * 24 },
-  // Tahun Ini (2 - 6 bulan lalu)
-  { ticket: 401190, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.45, net_profit: 10.35, magic: 1255, time: _nowSec - _daySec * 45 },
-  { ticket: 401189, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.50, net_profit: 10.40, magic: 1255, time: _nowSec - _daySec * 65 },
-  { ticket: 401188, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.25, net_profit: 10.20, magic: 1255, time: _nowSec - _daySec * 90 },
-  { ticket: 401187, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: _nowSec - _daySec * 120 },
-  { ticket: 401186, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.40, net_profit: 10.30, magic: 1255, time: _nowSec - _daySec * 150 },
-  { ticket: 401185, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.70, net_profit: 10.60, magic: 1255, time: _nowSec - _daySec * 185 },
-  // Semua Riwayat (> 1 Tahun)
-  { ticket: 401050, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.35, net_profit: 10.25, magic: 1255, time: _nowSec - _daySec * 380 },
-  { ticket: 401049, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.40, net_profit: 10.30, magic: 1255, time: _nowSec - _daySec * 400 },
-  { ticket: 401048, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.30, net_profit: 10.25, magic: 1255, time: _nowSec - _daySec * 420 },
-  { ticket: 401047, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.40, net_profit: 10.30, magic: 1255, time: _nowSec - _daySec * 450 },
+  { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.45, net_profit: 10.35, magic: 1255, time: _todayMidnightSec + 6 * 3600 + 42 * 60 + 18 },
+  { ticket: 401261, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.15, net_profit: 10.10, magic: 1255, time: _todayMidnightSec + 6 * 3600 + 15 * 60 + 4 },
+  { ticket: 401260, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.55, net_profit: 10.45, magic: 1255, time: _todayMidnightSec + 5 * 3600 + 38 * 60 + 41 },
+  { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 11.30, net_profit: 11.20, magic: 1255, time: _todayMidnightSec + 5 * 3600 + 10 * 60 + 15 },
+  { ticket: 401258, symbol: "BTCUSD", type: "SELL", volume: 0.01, profit: -1.00, net_profit: -1.05, magic: 1255, time: _todayMidnightSec + 5 * 3600 + 10 * 60 + 14 },
+  { ticket: 401257, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.30, net_profit: 10.20, magic: 1255, time: _todayMidnightSec + 4 * 3600 + 28 * 60 + 33 },
+  { ticket: 401256, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: _todayMidnightSec + 3 * 3600 + 45 * 60 + 22 },
+  { ticket: 401255, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.10, net_profit: 10.05, magic: 1255, time: _todayMidnightSec + 3 * 3600 + 10 * 60 + 10 },
+  { ticket: 401254, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 12.50, net_profit: 12.40, magic: 1255, time: _todayMidnightSec + 2 * 3600 + 12 * 60 + 49 },
+  { ticket: 401253, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: -2.10, net_profit: -2.15, magic: 1255, time: _todayMidnightSec + 2 * 3600 + 12 * 60 + 48 },
+  { ticket: 401252, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: _todayMidnightSec + 1 * 3600 + 15 * 60 + 19 },
+  { ticket: 401251, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: _todayMidnightSec + 0 * 3600 + 38 * 60 + 7 },
 ];
 let standaloneEquityHistory = [
   { time: "00:00", balance: 2000.0, equity: 2000.0 },
@@ -2139,6 +2133,13 @@ function setMagicFilter(val) {
   }
 }
 
+function formatInstallDate(unixSec) {
+  const d = new Date(Number(unixSec || appInstallTs) * 1000);
+  const day = String(d.getDate()).padStart(2, "0");
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 function setDealPeriodFilter(period) {
   selectedDealPeriod = period;
   const periods = ["WEEK", "MONTH", "YEAR", "ALL"];
@@ -2158,7 +2159,7 @@ function setDealPeriodFilter(period) {
     }
   }
   const lblEl = document.getElementById("deal-period-label");
-  if (lblEl) lblEl.textContent = `Periode: ${labels[period] || "Minggu Ini"}`;
+  if (lblEl) lblEl.textContent = `Mulai Tercatat: ${formatInstallDate(appInstallTs)}`;
   const titleEl = document.getElementById("term-closed-title");
   if (titleEl) titleEl.textContent = `Akumulasi Profit Closed (${labels[period] || "Minggu Ini"})`;
 
@@ -2241,6 +2242,9 @@ function renderOpenPositions(positions) {
 
 function renderClosedDeals(deals) {
   const tbody = document.getElementById("closed-deals-tbody");
+  const lblEl = document.getElementById("deal-period-label");
+  if (lblEl) lblEl.textContent = `Mulai Tercatat: ${formatInstallDate(appInstallTs)}`;
+
   const nowSec = Math.floor(Date.now() / 1000);
   const cutoffMap = {
     WEEK: nowSec - 86400 * 7,
@@ -2248,7 +2252,8 @@ function renderClosedDeals(deals) {
     YEAR: nowSec - 86400 * 365,
     ALL: 0,
   };
-  const minTime = cutoffMap[selectedDealPeriod] ?? 0;
+  // Riwayat selalu dimulai sejak tanggal aplikasi pertama kali dibuka/diinstal oleh user
+  const minTime = Math.max(appInstallTs, cutoffMap[selectedDealPeriod] ?? 0);
   const filtered = (deals || []).filter((d) => Number(d.time || 0) >= minTime);
 
   document.getElementById("tab-deals-count").textContent = filtered.length;
