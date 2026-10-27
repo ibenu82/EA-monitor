@@ -557,12 +557,12 @@
               <div class="p-3.5 rounded-xl bg-gray-900/95 border border-emerald-500/30 space-y-1.5">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-emerald-400">1. Kapan Entry Awal (Init_B / Init_S)?</span>
-                  <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono-num text-[10px] font-bold">0.01 Lot</span>
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 font-mono-num text-[10px] font-bold">0.01 Lot (M5)</span>
                 </div>
                 <p class="text-gray-300 leading-relaxed">
-                  Saat belum ada posisi terbuka, EA memindai <strong>Zona Supply & Demand (SND)</strong> dan filter tren <strong>EMA 50</strong>:
-                  <br/>• <strong>Entry BUY:</strong> Harga masuk Zona Demand & berada di atas garis EMA 50.
-                  <br/>• <strong>Entry SELL:</strong> Harga masuk Zona Supply & berada di bawah garis EMA 50.
+                  Terkunci pada timeframe <strong>M5</strong>. EA memindai <strong>Auto Zona Supply & Demand (Lookback 100 Candle M5, Impuls 1.8x)</strong>:
+                  <br/>• <strong>Entry BUY (Init_B):</strong> Harga berada di Zona Demand (SND_Z_D_) & di atas garis EMA 50.
+                  <br/>• <strong>Entry SELL (Init_S):</strong> Harga berada di Zona Supply (SND_Z_S_) & di bawah garis EMA 50.
                 </p>
               </div>
 
@@ -591,10 +591,10 @@
               <div class="p-3.5 rounded-xl bg-gray-900/95 border border-blue-500/30 space-y-1.5">
                 <div class="flex items-center justify-between">
                   <span class="font-bold text-blue-400">4. Kapan Exit / Tutup Posisi (CloseAll)?</span>
-                  <span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 font-mono-num text-[10px] font-bold">+$10 / +$100</span>
+                  <span class="px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 font-mono-num text-[10px] font-bold">+$5 / +$100</span>
                 </div>
                 <p class="text-gray-300 leading-relaxed">
-                  • <strong>Exit Siklus (+$10 / 10¢):</strong> Begitu total akumulasi floating seluruh posisi terbuka mencapai <strong>+10.00</strong>, semua posisi langsung ditutup serentak menjadi saldo.<br/>
+                  • <strong>Exit Siklus (+$5 / 5¢):</strong> Begitu total akumulasi floating seluruh posisi terbuka mencapai <strong>+5.00</strong> (InpTargetGroup), semua posisi langsung ditutup serentak menjadi saldo (20x siklus per hari = $100 target harian).<br/>
                   • <strong>Exit & Kunci Harian (+$100 / 100¢):</strong> Saat profit hari ini mencapai <strong>+100.00</strong>, semua posisi ditutup & EA dikunci sampai pukul <strong>00:00</strong>.
                 </p>
               </div>
@@ -762,7 +762,7 @@
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
                       <span class="text-gray-400">Target Sekali Tutup</span>
-                      <span class="text-emerald-400 font-bold">10 Cent / Siklus</span>
+                      <span class="text-emerald-400 font-bold">5 Cent / Siklus (20x Siklus = 100¢)</span>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-400">Target Profit Harian</span>
@@ -811,7 +811,7 @@
                     </div>
                     <div class="flex justify-between items-center pb-2 border-b border-gray-800/70">
                       <span class="text-gray-400">Target Sekali Tutup</span>
-                      <span class="text-emerald-400 font-bold">$10 / Siklus</span>
+                      <span class="text-emerald-400 font-bold">$5 / Siklus (20x Siklus = $100)</span>
                     </div>
                     <div class="flex justify-between items-center">
                       <span class="text-gray-400">Target Profit Harian</span>
@@ -1146,8 +1146,8 @@ let standaloneRealVerified = localStorage.getItem("eamon_real_verified") === "tr
 let standaloneRealLoginId = Number(localStorage.getItem("eamon_real_login") || 88504219);
 let liveBtcPrice = 80702.59;
 let standaloneOpenPrice = 80690.59;
-let standaloneBalance = 2101.35;
-let standaloneStartBalance = 2101.35;
+let standaloneBalance = Number(localStorage.getItem("eamon_standalone_balance") || 2051.00);
+let standaloneStartBalance = 2000.00;
 let standaloneEaEnabled = true;
 let standaloneCustomEaName = localStorage.getItem("eamon_custom_ea_name") || "";
 let standaloneLastCloseTs = 0;
@@ -1166,41 +1166,68 @@ if (!appInstallTs || appInstallTs > _todayMidnightSec) {
 const _nowSec = Math.floor(Date.now() / 1000);
 const _daySec = 86400;
 
-let standalonePositions = [
-  {
-    ticket: 19493258,
-    symbol: "BTCUSD",
-    type: "BUY",
-    volume: 0.01,
-    price_open: 80690.59,
-    price_current: 80702.59,
-    sl: 0.0,
-    tp: 0.0,
-    swap: 0.0,
-    commission: -0.05,
-    profit: 0.12,
-    net_profit: 0.07,
-    magic: 1255,
-    comment: "Init_B",
-    time: _nowSec - 180,
-  },
-];
+// ============================================================================
+// PERSISTENT FIRST EXECUTION TIME & STATE
+// Menjamin waktu eksekusi pertama tetap konsisten dan tidak membuat eksekusi baru saat refresh / buka aplikasi baru
+// ============================================================================
+let standaloneFirstExecTs = Number(localStorage.getItem("eamon_first_exec_time") || 0);
+if (!standaloneFirstExecTs || standaloneFirstExecTs < _todayMidnightSec) {
+  // Tetapkan waktu eksekusi pertama sesi hari ini (Contoh: Jam 08:15:22 WIB)
+  standaloneFirstExecTs = _todayMidnightSec + 8 * 3600 + 15 * 60 + 22;
+  localStorage.setItem("eamon_first_exec_time", String(standaloneFirstExecTs));
+}
+
+let standalonePositions = null;
+try {
+  const savedPos = localStorage.getItem("eamon_standalone_positions");
+  if (savedPos) standalonePositions = JSON.parse(savedPos);
+} catch (e) {}
+
+if (!standalonePositions || !Array.isArray(standalonePositions)) {
+  standalonePositions = [
+    {
+      ticket: 19493258,
+      symbol: "BTCUSD",
+      type: "BUY",
+      volume: 0.01,
+      price_open: 80690.59,
+      price_current: 80702.59,
+      sl: 0.0,
+      tp: 0.0,
+      swap: 0.0,
+      commission: -0.05,
+      profit: 0.12,
+      net_profit: 0.07,
+      magic: 1255,
+      comment: "Init_B",
+      time: standaloneFirstExecTs, // Waktu eksekusi pertama terkunci konsisten
+    },
+  ];
+  localStorage.setItem("eamon_standalone_positions", JSON.stringify(standalonePositions));
+}
 
 // Riwayat transaksi dimulai sejak tanggal aplikasi pertama kali dibuka / diinstal (tanpa transaksi kosong di bulan-bulan lalu)
-let standaloneDeals = [
-  { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.45, net_profit: 10.35, magic: 1255, time: _todayMidnightSec + 6 * 3600 + 42 * 60 + 18 },
-  { ticket: 401261, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.15, net_profit: 10.10, magic: 1255, time: _todayMidnightSec + 6 * 3600 + 15 * 60 + 4 },
-  { ticket: 401260, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.55, net_profit: 10.45, magic: 1255, time: _todayMidnightSec + 5 * 3600 + 38 * 60 + 41 },
-  { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 11.30, net_profit: 11.20, magic: 1255, time: _todayMidnightSec + 5 * 3600 + 10 * 60 + 15 },
-  { ticket: 401258, symbol: "BTCUSD", type: "SELL", volume: 0.01, profit: -1.00, net_profit: -1.05, magic: 1255, time: _todayMidnightSec + 5 * 3600 + 10 * 60 + 14 },
-  { ticket: 401257, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.30, net_profit: 10.20, magic: 1255, time: _todayMidnightSec + 4 * 3600 + 28 * 60 + 33 },
-  { ticket: 401256, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.60, net_profit: 10.50, magic: 1255, time: _todayMidnightSec + 3 * 3600 + 45 * 60 + 22 },
-  { ticket: 401255, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 10.10, net_profit: 10.05, magic: 1255, time: _todayMidnightSec + 3 * 3600 + 10 * 60 + 10 },
-  { ticket: 401254, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 12.50, net_profit: 12.40, magic: 1255, time: _todayMidnightSec + 2 * 3600 + 12 * 60 + 49 },
-  { ticket: 401253, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: -2.10, net_profit: -2.15, magic: 1255, time: _todayMidnightSec + 2 * 3600 + 12 * 60 + 48 },
-  { ticket: 401252, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: _todayMidnightSec + 1 * 3600 + 15 * 60 + 19 },
-  { ticket: 401251, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 10.25, net_profit: 10.15, magic: 1255, time: _todayMidnightSec + 0 * 3600 + 38 * 60 + 7 },
-];
+let standaloneDeals = null;
+try {
+  const savedDeals = localStorage.getItem("eamon_standalone_deals");
+  if (savedDeals) standaloneDeals = JSON.parse(savedDeals);
+} catch (e) {}
+
+if (!standaloneDeals || !Array.isArray(standaloneDeals) || standaloneDeals.length === 0) {
+  standaloneDeals = [
+    { ticket: 401268, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 5.15, net_profit: 5.10, magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 8 * 3600 + 5 * 60 },
+    { ticket: 401267, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 5.25, net_profit: 5.18, magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 7 * 3600 + 40 * 60 },
+    { ticket: 401266, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.10, net_profit: 5.05, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 7 * 3600 + 10 * 60 },
+    { ticket: 401265, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 5.30, net_profit: 5.22, magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 6 * 3600 + 35 * 60 },
+    { ticket: 401264, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 5.20, net_profit: 5.12, magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 6 * 3600 + 0 * 60 },
+    { ticket: 401263, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.15, net_profit: 5.10, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 5 * 3600 + 20 * 60 },
+    { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 5.25, net_profit: 5.18, magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 4 * 3600 + 45 * 60 },
+    { ticket: 401261, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 5.30, net_profit: 5.22, magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 3 * 3600 + 55 * 60 },
+    { ticket: 401260, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.10, net_profit: 5.05, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 3 * 3600 + 15 * 60 },
+    { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.12, net_profit: 5.07, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 2 * 3600 + 30 * 60 },
+  ];
+  localStorage.setItem("eamon_standalone_deals", JSON.stringify(standaloneDeals));
+}
 let standaloneEquityHistory = [
   { time: "00:00", balance: 2000.0, equity: 2000.0 },
   { time: "00:48", balance: 2010.15, equity: 2010.15 },
@@ -1354,6 +1381,7 @@ function buildStandaloneState() {
       comment: "Init_B",
       time: Math.floor(Date.now() / 1000),
     });
+    localStorage.setItem("eamon_standalone_positions", JSON.stringify(standalonePositions));
   }
 
   let totalFloating = 0.0;
@@ -1404,6 +1432,7 @@ function buildStandaloneState() {
       comment: "Hedge_S",
       time: Math.floor(Date.now() / 1000),
     });
+    localStorage.setItem("eamon_standalone_positions", JSON.stringify(standalonePositions));
   }
   // Sebaliknya jika posisi SELL floating loss <= -$5.00 dan belum ada BUY
   else if (sellPositions.length > 0 && buyPositions.length === 0 && totalFloating <= -5.0) {
@@ -1480,7 +1509,7 @@ function buildStandaloneState() {
   }
 
   // Auto-close jika mencapai Target Group 10.00
-  if (standalonePositions.length > 0 && totalFloating >= 10.0) {
+  if (standalonePositions.length > 0 && totalFloating >= 5.0) {
     for (const p of standalonePositions) {
       standaloneBalance = Number((standaloneBalance + p.net_profit).toFixed(2));
       standaloneDeals.unshift({
@@ -1496,6 +1525,9 @@ function buildStandaloneState() {
     }
     standalonePositions = [];
     standaloneLastCloseTs = Date.now();
+    localStorage.setItem("eamon_standalone_positions", JSON.stringify([]));
+    localStorage.setItem("eamon_standalone_deals", JSON.stringify(standaloneDeals));
+    localStorage.setItem("eamon_standalone_balance", String(standaloneBalance));
     totalFloating = 0.0;
     totalLots = 0.0;
     standaloneEquityHistory.push({
@@ -1577,9 +1609,9 @@ function buildStandaloneState() {
         status: isLocked ? "LOCKED_TARGET" : standaloneEaEnabled ? "ACTIVE" : "PAUSED",
         enabled: standaloneEaEnabled,
         symbol: symName,
-        timeframe: "M5",
+        timeframe: "M5", // Terkunci di M5
         daily_limit: 100.0,
-        group_target: 10.0,
+        group_target: 5.0,
         start_balance: standaloneStartBalance,
         bridge_daily_profit: Number((standaloneBalance - standaloneStartBalance).toFixed(2)),
         max_dir_pos: 3,
