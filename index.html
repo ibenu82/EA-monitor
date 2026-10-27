@@ -105,74 +105,7 @@
   <!-- ================================================================== -->
   <!-- HALAMAN LOGIN (VERSI DEMO)                                         -->
   <!-- ================================================================== -->
-  <div id="login-screen" class="hidden fixed inset-0 z-[100] bg-[#070a12] flex items-center justify-center p-4 overflow-y-auto">
-    <div class="glass-card rounded-3xl max-w-sm w-full p-6 sm:p-7 border border-gray-800 shadow-2xl space-y-4 my-auto">
-      <div class="flex flex-col items-center text-center space-y-2">
-        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-900/50">
-          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v18h18M7 14l4-4 3 3 5-6" />
-          </svg>
-        </div>
-        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/30">
-          Versi Demo • v12.55
-        </span>
-        <h1 class="text-xl font-bold text-white">MT5 EA Monitor</h1>
-        <p class="text-xs text-gray-400">Asisten Monitoring & Manajemen EA SND V12.55 (BTCUSD)</p>
-      </div>
-
-      <form onsubmit="handleLogin(event)" class="space-y-3">
-        <div>
-          <label class="block text-xs font-medium text-gray-300 mb-1">Username / ID Trader</label>
-          <input id="login-username" type="text" value="demo_trader" required class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-mono-num" />
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-300 mb-1">PIN / Password Demo</label>
-          <input id="login-password" type="password" value="1255" required class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 font-mono-num" />
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-medium text-gray-400 mb-1">Pilih Broker</label>
-            <select id="login-broker" onchange="onLoginBrokerChange()" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option value="Headway">Headway (Cent & Std)</option>
-              <option value="Exness">Exness (Khusus Std)</option>
-              <option value="XM">XM (Khusus Std)</option>
-              <option value="MIFX">MIFX (Khusus Std)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-[11px] font-medium text-gray-400 mb-1">Mode Akun (EA Versi)</label>
-            <select id="login-ea-version" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-              <option id="login-opt-cent" value="CENT">Akun CENT ($20)</option>
-              <option value="STANDARD">Standard ($2000)</option>
-            </select>
-          </div>
-        </div>
-        <div id="login-broker-mode-hint" class="text-[11px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 rounded-lg px-2.5 py-1.5 leading-snug">
-          ✓ Broker <strong>Headway</strong> mendukung pilihan <strong>Akun CENT ($20)</strong> maupun <strong>Standard ($2.000)</strong>.
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-0.5">
-          <button type="button" onclick="fillDemoAccount('demo_trader')" class="py-1.5 px-2 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700 text-[11px] text-blue-400 font-mono-num">
-            Akun: demo_trader
-          </button>
-          <button type="button" onclick="fillDemoAccount('ibnu_trader')" class="py-1.5 px-2 rounded-lg bg-gray-900 hover:bg-gray-800 border border-gray-700 text-[11px] text-emerald-400 font-mono-num">
-            Akun: ibnu_trader
-          </button>
-        </div>
-        <button type="submit" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-900/40 transition">
-          Masuk ke Dashboard (Demo)
-        </button>
-      </form>
-
-      <div class="pt-3 border-t border-gray-800/80 text-center">
-        <p class="text-[11px] text-gray-400">Gunakan akun publik <code class="text-blue-400">demo_trader</code> (PIN: <code class="text-blue-400">1255</code>) untuk akses bersama</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ================================================================== -->
-  <!-- BACKDROP OVERLAY SIDEBAR MOBILE                                    -->
-  <!-- ================================================================== -->
-  <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="hidden fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"></div>
+  <!-- Login screen ditunda sampai fungsi utama siap -->
 
   <div class="flex min-h-screen">
 
@@ -252,16 +185,7 @@
 
         <div class="pt-3 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">Konfigurasi EA & Broker</div>
 
-        <!-- MENU BARU: EA VERSI (CENT vs STANDARD) -->
-        <button type="button" onclick="switchPage('eaversion')" id="side-nav-eaversion" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
-          <div class="flex items-center gap-3">
-            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <span>EA Versi</span>
-          </div>
-          <span id="side-eaversion-badge" class="px-2 py-0.5 text-[10px] rounded bg-emerald-500/15 text-emerald-400 font-mono-num font-bold">STD</span>
-        </button>
+        
 
         <!-- MENU BARU: BROKER (HEADWAY, XM, EXNESS) -->
         <button type="button" onclick="switchPage('broker')" id="side-nav-broker" class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-gray-200 hover:bg-gray-800/50 border border-transparent transition">
@@ -670,7 +594,7 @@
                       <th class="py-2.5 px-2">Symbol</th>
                       <th class="py-2.5 px-2">Type</th>
                       <th class="py-2.5 px-2">Lot</th>
-                      <th class="py-2.5 px-2">Waktu</th>
+                      <th class="py-2.5 px-2">Tanggal & Waktu</th>
                       <th class="py-2.5 px-2">Open</th>
                       <th class="py-2.5 px-2">Current</th>
                       <th class="py-2.5 px-2 text-right">Floating PnL</th>
@@ -723,7 +647,7 @@
               <table class="w-full table-fixed text-left border-collapse">
                 <thead>
                   <tr class="border-b border-gray-800 text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                    <th class="py-2 px-1.5 w-[26%]">Waktu</th>
+                    <th class="py-2 px-1.5 w-[30%]">Tanggal & Waktu</th>
                     <th class="py-2 px-1.5 w-[22%]">Symbol</th>
                     <th class="py-2 px-1 w-[15%] text-center">Type</th>
                     <th class="py-2 px-1 w-[14%] text-right">Lot</th>
@@ -918,52 +842,13 @@
               <button type="button" onclick="saveUserProfile()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition">
                 Simpan Profil
               </button>
-              <button type="button" onclick="handleLogout()" class="px-5 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/40 text-xs font-bold transition">
-                Logout Akun
-              </button>
-            </div>
-          </div>
-
-          <!-- KONEKSI SUPABASE CLOUD DATABASE -->
-          <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-gray-800">
-              <div>
-                <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                  <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                  </svg>
-                  Koneksi Database Cloud (Supabase)
-                </h3>
-                <p class="text-xs text-gray-400 mt-0.5">Sinkronisasi posisi riil, saldo, dan riwayat transaksi antar perangkat secara live.</p>
-              </div>
-              <span id="supabase-status-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300">
-                Mode Standalone (Local)
+              <span class="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Akun Siap & Aktif
               </span>
             </div>
-
-            <div class="space-y-3">
-              <div>
-                <label class="block text-xs font-medium text-gray-300 mb-1">Project URL Supabase</label>
-                <input id="supabase-url-input" type="url" placeholder="https://your-project.supabase.co" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono-num" />
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-300 mb-1">API Anon Public Key</label>
-                <input id="supabase-key-input" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono-num" />
-              </div>
-
-              <div class="flex gap-2 pt-1">
-                <button type="button" onclick="saveAndConnectSupabase()" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-900/30">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  Simpan & Hubungkan Cloud
-                </button>
-                <button type="button" onclick="testSupabaseConnection()" class="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition">
-                  Tes Koneksi
-                </button>
-              </div>
-              <div id="supabase-feedback" class="hidden text-xs p-2.5 rounded-xl font-medium"></div>
-            </div>
           </div>
-        </section>
+
+          </section>
 
         <!-- ========================================================== -->
         <!-- HALAMAN 7: PENGATURAN APLIKASI                             -->
@@ -997,43 +882,37 @@
             </div>
           </div>
 
-          <!-- KONEKSI SUPABASE CLOUD DATABASE -->
+          <!-- SINKRONISASI SUPABASE CLOUD DATABASE (OTOMATIS) -->
           <div class="glass-card rounded-2xl p-5 sm:p-6 space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-gray-800">
-              <div>
-                <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                  <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
                   </svg>
-                  Koneksi Database Cloud (Supabase)
-                </h3>
-                <p class="text-xs text-gray-400 mt-0.5">Sinkronisasi posisi riil, saldo, dan riwayat transaksi antar perangkat secara live.</p>
+                </div>
+                <div>
+                  <h3 class="text-sm sm:text-base font-bold text-white">Database Cloud Supabase</h3>
+                  <p class="text-xs text-gray-400 mt-0.5">Tersimpan dan tersinkronisasi otomatis di dalam aplikasi.</p>
+                </div>
               </div>
-              <span id="supabase-status-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300">
-                Mode Standalone (Local)
+              <span id="supabase-status-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Terhubung Otomatis
               </span>
             </div>
 
-            <div class="space-y-3">
-              <div>
-                <label class="block text-xs font-medium text-gray-300 mb-1">Project URL Supabase</label>
-                <input id="supabase-url-input" type="url" placeholder="https://your-project.supabase.co" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono-num" />
+            <div class="p-3.5 rounded-xl bg-gray-950/60 border border-gray-800 text-xs text-gray-300 space-y-2">
+              <div class="flex items-center justify-between text-gray-400 text-[11px]">
+                <span>Status Sinkronisasi Realtime:</span>
+                <span class="text-emerald-400 font-semibold font-mono-num">Aktif (24/7 Live)</span>
               </div>
-              <div>
-                <label class="block text-xs font-medium text-gray-300 mb-1">API Anon Public Key</label>
-                <input id="supabase-key-input" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6..." class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono-num" />
+              <div class="flex items-center justify-between text-gray-400 text-[11px]">
+                <span>Penyimpanan Posisi & Saldo:</span>
+                <span class="text-blue-400 font-semibold font-mono-num">Auto-Sync Terpusat</span>
               </div>
-
-              <div class="flex gap-2 pt-1">
-                <button type="button" onclick="saveAndConnectSupabase()" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-900/30">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-                  Simpan & Hubungkan Cloud
-                </button>
-                <button type="button" onclick="testSupabaseConnection()" class="py-2.5 px-3 rounded-xl text-xs font-semibold bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition">
-                  Tes Koneksi
-                </button>
-              </div>
-              <div id="supabase-feedback" class="hidden text-xs p-2.5 rounded-xl font-medium"></div>
+              <p class="text-[11px] text-gray-400 pt-1 border-t border-gray-800/80">
+                Seluruh data transaksi dan status akun tersimpan otomatis secara aman di database cloud tanpa perlu pengisian manual URL atau API Key oleh pengguna.
+              </p>
             </div>
           </div>
         </section>
@@ -1642,7 +1521,7 @@ function closeMobileSidebar() {
 function switchPage(pageName) {
   if (pageName === "eaversion") pageName = "broker";
   currentPage = pageName;
-  const pages = ["overview", "ea", "terminal", "eaversion", "broker", "profile", "settings"];
+  const pages = ["overview", "ea", "terminal", "broker", "profile", "settings"];
 
   for (const p of pages) {
     const sec = document.getElementById(`page-${p}`);
@@ -2097,16 +1976,12 @@ function handleLogin(e) {
   applyUserProfile(displayName);
   switchBroker(chosenBroker);
   selectEAVersion(chosenVer);
-  const loginScr = document.getElementById("login-screen");
-  if (loginScr) loginScr.classList.add("hidden");
-  showToast(`Login berhasil sebagai ${displayName}!`);
+  showToast(`Profil ${displayName} aktif.`);
 }
 
 function handleLogout() {
   closeMobileSidebar();
-  localStorage.setItem("eamon_logged_in", "false");
-  const loginScr = document.getElementById("login-screen");
-  if (loginScr) loginScr.classList.remove("hidden");
+  showToast("Akun siap pakai. Fitur multi-user & login akan diatur kemudian.");
 }
 
 function saveUserProfile() {
@@ -2802,16 +2677,33 @@ function formatInstallDate(unixSec) {
   return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+function getPeriodDateRangeText(period) {
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  const now = new Date();
+  const formatD = (d) => `${String(d.getDate()).padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const formatShort = (d) => `${String(d.getDate()).padStart(2, "0")} ${months[d.getMonth()]}`;
+
+  if (period === "DAY") {
+    return `Hari Ini • ${formatD(now)}`;
+  }
+  if (period === "WEEK") {
+    const weekAgo = new Date(now.getTime() - 7 * 86400 * 1000);
+    return `Minggu Ini • ${formatShort(weekAgo)} - ${formatD(now)}`;
+  }
+  if (period === "MONTH") {
+    const monthAgo = new Date(now.getTime() - 30 * 86400 * 1000);
+    return `Bulan Ini • ${formatShort(monthAgo)} - ${formatD(now)}`;
+  }
+  if (period === "YEAR") {
+    const startYear = new Date(now.getFullYear(), 0, 1);
+    return `Tahun Ini • ${formatShort(startYear)} - ${formatD(now)}`;
+  }
+  return `Semua Riwayat • s/d ${formatD(now)}`;
+}
+
 function setDealPeriodFilter(period) {
   selectedDealPeriod = period;
   const periods = ["DAY", "WEEK", "MONTH", "YEAR", "ALL"];
-  const labels = {
-    DAY: "Hari Ini",
-    WEEK: "Minggu Ini",
-    MONTH: "Bulan Ini",
-    YEAR: "Tahun Ini",
-    ALL: "Semua Riwayat",
-  };
   for (const p of periods) {
     const btn = document.getElementById(`filter-period-${p}`);
     if (btn) {
@@ -2821,10 +2713,11 @@ function setDealPeriodFilter(period) {
           : "py-2 px-1 rounded-lg text-xs font-semibold text-gray-400 hover:text-white transition text-center";
     }
   }
+  const dateRangeStr = getPeriodDateRangeText(period);
   const lblEl = document.getElementById("deal-period-label");
-  if (lblEl) lblEl.textContent = `Periode: ${labels[period] || "Hari Ini"}`;
+  if (lblEl) lblEl.textContent = dateRangeStr;
   const titleEl = document.getElementById("term-closed-title");
-  if (titleEl) titleEl.textContent = `Akumulasi Profit Closed (${labels[period] || "Hari Ini"})`;
+  if (titleEl) titleEl.textContent = `Akumulasi Profit Closed (${dateRangeStr})`;
 
   if (latestState) {
     renderClosedDeals(latestState.recent_deals || []);
@@ -2834,19 +2727,23 @@ function setDealPeriodFilter(period) {
 function formatDealDateTime(unixSec) {
   if (!unixSec) return "-";
   const d = new Date(Number(unixSec) * 1000);
-  const now = new Date();
-  const isSameDay =
-    d.getDate() === now.getDate() &&
-    d.getMonth() === now.getMonth() &&
-    d.getFullYear() === now.getFullYear();
-  if (isSameDay) {
-    return d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  }
   const day = String(d.getDate()).padStart(2, "0");
   const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
   const mon = months[d.getMonth()] || "";
-  const hm = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-  return `${day} ${mon} ${hm}`;
+  const year = d.getFullYear();
+  const time = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return `<div class="leading-tight"><div class="text-white font-medium text-[11px]">${day} ${mon} ${year}</div><div class="text-gray-400 text-[10px] font-mono-num">${time} WIB</div></div>`;
+}
+
+function formatPositionDateTime(unixSec) {
+  if (!unixSec) return "-";
+  const d = new Date(Number(unixSec) * 1000);
+  const day = String(d.getDate()).padStart(2, "0");
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  const mon = months[d.getMonth()] || "";
+  const year = d.getFullYear();
+  const time = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return `<div class="leading-tight"><div class="text-white font-medium text-[11px]">${day} ${mon} ${year}</div><div class="text-gray-400 text-[10px] font-mono-num">${time} WIB</div></div>`;
 }
 
 function formatFloatingDuration(openUnixSec) {
@@ -2909,9 +2806,7 @@ function renderOpenPositions(positions) {
           }">${p.type}</span>${commentBadge}
         </td>
         <td class="py-3 px-2 font-semibold text-gray-200">${Number(p.volume).toFixed(2)}</td>
-                <td class="py-3 px-2">
-          <div class="text-gray-200 font-semibold font-mono-num">${entryTimeStr}</div>
-        </td>
+                <td class="py-3 px-2">${formatPositionDateTime(p.time)}</td>
         <td class="py-3 px-2 text-gray-300">${formatPrice(p.symbol, p.price_open)}</td>
         <td class="py-3 px-2 text-white font-semibold">${formatPrice(p.symbol, p.price_current)}</td>
         <td class="py-3 px-2 text-right font-bold ${net >= 0 ? "text-emerald-400" : "text-rose-400"}">
@@ -2932,7 +2827,7 @@ function renderClosedDeals(deals) {
     ALL: "Semua Riwayat",
   };
   const lblEl = document.getElementById("deal-period-label");
-  if (lblEl) lblEl.textContent = `Periode: ${labels[selectedDealPeriod] || "Hari Ini"}`;
+  if (lblEl) lblEl.textContent = getPeriodDateRangeText(selectedDealPeriod);
 
   const nowSec = Math.floor(Date.now() / 1000);
   const cutoffMap = {
@@ -3194,10 +3089,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   applyUserProfile(savedUser);
   onLoginBrokerChange();
   inspectBrokerCard(activeBrokerName);
-  if (localStorage.getItem("eamon_logged_in") !== "true") {
-    const loginScr = document.getElementById("login-screen");
-    if (loginScr) loginScr.classList.remove("hidden");
-  }
+  localStorage.setItem("eamon_logged_in", "true");
 
   renderNotifications();
   initEquityChart();
@@ -3289,19 +3181,6 @@ function updateSupabaseUIStatus(connected) {
 }
 
 async function saveAndConnectSupabase() {
-  const url = (document.getElementById("supabase-url-input")?.value || "").trim();
-  const key = (document.getElementById("supabase-key-input")?.value || "").trim();
-
-  if (!url || !key) {
-    alert("Harap masukkan Supabase Project URL dan Anon Key terlebih dahulu.");
-    return;
-  }
-
-  supabaseUrl = url;
-  supabaseKey = key;
-  localStorage.setItem("eamon_supabase_url", supabaseUrl);
-  localStorage.setItem("eamon_supabase_key", supabaseKey);
-
   initSupabase();
   await testSupabaseConnection(true);
 }
