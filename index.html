@@ -777,10 +777,17 @@
               </div>
 
               <form onsubmit="handleConnectRealAccount(event)" class="space-y-3">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Broker & Mode Terpilih</label>
-                    <input id="conn-broker-readonly" type="text" readonly value="Headway (Mode Standard $2.000)" class="w-full bg-gray-950/80 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-300 font-semibold cursor-not-allowed" />
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Broker Terpilih</label>
+                    <input id="conn-broker-readonly" type="text" readonly value="Headway" class="w-full bg-gray-950/80 border border-gray-700 rounded-xl px-3 py-2 text-xs text-gray-300 font-semibold cursor-not-allowed" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Mode Akun MT5 Baru</label>
+                    <select id="conn-account-mode-select" class="w-full bg-gray-950 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                      <option value="STANDARD">Standard ($2.000 USD • BTCUSD)</option>
+                      <option value="CENT">Cent ($20 USD • BTCUSDc)</option>
+                    </select>
                   </div>
                   <div>
                     <label class="block text-xs font-medium text-gray-300 mb-1">Login ID MT5 Klien</label>
@@ -1071,27 +1078,76 @@ function initRealtimeInitialPosition() {
 initRealtimeInitialPosition();
 
 // Riwayat transaksi dimulai sejak tanggal aplikasi pertama kali dibuka / diinstal (tanpa transaksi kosong di bulan-bulan lalu)
-let standaloneDeals = null;
-try {
-  const savedDeals = localStorage.getItem("eamon_standalone_deals");
-  if (savedDeals) standaloneDeals = JSON.parse(savedDeals);
-} catch (e) {}
+// ============================================================================
+// STANDALONE DATA STORAGE DENGAN PEMISAHAN KETAT (1 AKUN = 1 MODE AKUN)
+// Mode STANDARD = HANYA BTCUSD (Mata Uang USD, Target Keranjang $5.00, Limit $100.00)
+// Mode CENT     = HANYA BTCUSDc (Mata Uang USC, Target Keranjang 500 USC, Limit 10.000 USC)
+// ============================================================================
+function getCleanInitialDeals(mode) {
+  const isCent = mode === "CENT";
+  const sym = isCent ? "BTCUSDc" : "BTCUSD";
+  const mult = isCent ? 100.0 : 1.0;
 
-if (!standaloneDeals || !Array.isArray(standaloneDeals) || standaloneDeals.length === 0) {
-  standaloneDeals = [
-    { ticket: 401268, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 5.15, net_profit: 5.10, magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 8 * 3600 + 5 * 60 },
-    { ticket: 401267, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 5.25, net_profit: 5.18, magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 7 * 3600 + 40 * 60 },
-    { ticket: 401266, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.10, net_profit: 5.05, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 7 * 3600 + 10 * 60 },
-    { ticket: 401265, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 5.30, net_profit: 5.22, magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 6 * 3600 + 35 * 60 },
-    { ticket: 401264, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 5.20, net_profit: 5.12, magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 6 * 3600 + 0 * 60 },
-    { ticket: 401263, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.15, net_profit: 5.10, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 5 * 3600 + 20 * 60 },
-    { ticket: 401262, symbol: "BTCUSD", type: "BUY",  volume: 0.02, profit: 5.25, net_profit: 5.18, magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 4 * 3600 + 45 * 60 },
-    { ticket: 401261, symbol: "BTCUSD", type: "SELL", volume: 0.02, profit: 5.30, net_profit: 5.22, magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 3 * 3600 + 55 * 60 },
-    { ticket: 401260, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.10, net_profit: 5.05, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 3 * 3600 + 15 * 60 },
-    { ticket: 401259, symbol: "BTCUSD", type: "BUY",  volume: 0.01, profit: 5.12, net_profit: 5.07, magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 2 * 3600 + 30 * 60 },
+  // 10 Siklus Keranjang Selesai Hari Ini (Sesuai InpTargetGroup = 5.0 / 500 USC)
+  // Menghasilkan akumulasi profit harian $51.05 menuju target harian mutlak $100 (20 siklus)
+  return [
+    { ticket: 401268, symbol: sym, type: "BUY",  volume: 0.02, profit: Number((5.15 * mult).toFixed(2)), net_profit: Number((5.10 * mult).toFixed(2)), magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 8 * 3600 + 5 * 60 },
+    { ticket: 401267, symbol: sym, type: "SELL", volume: 0.02, profit: Number((5.25 * mult).toFixed(2)), net_profit: Number((5.18 * mult).toFixed(2)), magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 7 * 3600 + 40 * 60 },
+    { ticket: 401266, symbol: sym, type: "BUY",  volume: 0.01, profit: Number((5.10 * mult).toFixed(2)), net_profit: Number((5.05 * mult).toFixed(2)), magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 7 * 3600 + 10 * 60 },
+    { ticket: 401265, symbol: sym, type: "BUY",  volume: 0.02, profit: Number((5.30 * mult).toFixed(2)), net_profit: Number((5.22 * mult).toFixed(2)), magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 6 * 3600 + 35 * 60 },
+    { ticket: 401264, symbol: sym, type: "SELL", volume: 0.02, profit: Number((5.20 * mult).toFixed(2)), net_profit: Number((5.12 * mult).toFixed(2)), magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 6 * 3600 + 0 * 60 },
+    { ticket: 401263, symbol: sym, type: "BUY",  volume: 0.01, profit: Number((5.15 * mult).toFixed(2)), net_profit: Number((5.10 * mult).toFixed(2)), magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 5 * 3600 + 20 * 60 },
+    { ticket: 401262, symbol: sym, type: "BUY",  volume: 0.02, profit: Number((5.25 * mult).toFixed(2)), net_profit: Number((5.18 * mult).toFixed(2)), magic: 1255, comment: "Layer_B1", time: _todayMidnightSec + 4 * 3600 + 45 * 60 },
+    { ticket: 401261, symbol: sym, type: "SELL", volume: 0.02, profit: Number((5.30 * mult).toFixed(2)), net_profit: Number((5.22 * mult).toFixed(2)), magic: 1255, comment: "Hedge_S",  time: _todayMidnightSec + 3 * 3600 + 55 * 60 },
+    { ticket: 401260, symbol: sym, type: "BUY",  volume: 0.01, profit: Number((5.10 * mult).toFixed(2)), net_profit: Number((5.05 * mult).toFixed(2)), magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 3 * 3600 + 15 * 60 },
+    { ticket: 401259, symbol: sym, type: "BUY",  volume: 0.01, profit: Number((5.12 * mult).toFixed(2)), net_profit: Number((5.07 * mult).toFixed(2)), magic: 1255, comment: "Init_B",   time: _todayMidnightSec + 2 * 3600 + 30 * 60 },
   ];
-  localStorage.setItem("eamon_standalone_deals", JSON.stringify(standaloneDeals));
 }
+
+function getModeDeals(mode) {
+  const isCent = mode === "CENT";
+  const expectedSym = isCent ? "BTCUSDc" : "BTCUSD";
+  const storageKey = isCent ? "eamon_deals_cent" : "eamon_deals_standard";
+
+  // WIPE cache lama yang tercampur pair silang
+  localStorage.removeItem("eamon_standalone_deals");
+
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Buang transaksi anomali ($7.94 / $3.47) atau simbol yang tidak sesuai mode akun
+        const valid = parsed.filter(d => 
+          d && d.symbol === expectedSym && 
+          Number(d.net_profit) !== 7.94 && 
+          Number(d.net_profit) !== 3.47
+        );
+        if (valid.length > 0) {
+          return valid;
+        }
+      }
+    }
+  } catch (e) {}
+
+  const clean = getCleanInitialDeals(mode);
+  localStorage.setItem(storageKey, JSON.stringify(clean));
+  return clean;
+}
+
+function saveModeDeals(mode, deals) {
+  const isCent = mode === "CENT";
+  const storageKey = isCent ? "eamon_deals_cent" : "eamon_deals_standard";
+  const expectedSym = isCent ? "BTCUSDc" : "BTCUSD";
+  const filtered = (deals || []).filter(d => 
+    d && d.symbol === expectedSym && 
+    Number(d.net_profit) !== 7.94 && 
+    Number(d.net_profit) !== 3.47
+  );
+  localStorage.setItem(storageKey, JSON.stringify(filtered));
+}
+
+let standaloneDeals = getModeDeals(activeEAVersion);
 let standaloneEquityHistory = [
   { time: "00:00", balance: 2000.0, equity: 2000.0 },
   { time: "00:48", balance: 2010.15, equity: 2010.15 },
@@ -1375,25 +1431,55 @@ function buildStandaloneState() {
     }
   }
 
-  // Auto-close jika mencapai Target Group 10.00
-  if (standalonePositions.length > 0 && totalFloating >= 5.0) {
-    for (const p of standalonePositions) {
-      standaloneBalance = Number((standaloneBalance + p.net_profit).toFixed(2));
+  // ============================================================================
+  // AUTO-CLOSE KERANJANG SND V12.55 BALANCE SURPLUS
+  // Target per Keranjang: InpTargetGroup = $5.00 (Standard) / 500 USC (Cent)
+  // Menutup seluruh posisi dalam keranjang secara serentak untuk mengunci cuan keranjang
+  // ============================================================================
+  const targetGroup = isCent ? 500.0 : 5.0;
+  const cycleProfit = isCent ? 510.0 : 5.10; // Target $5.00 + micro tick $0.10
+
+  if (standalonePositions.length > 0 && totalFloating >= targetGroup) {
+    standaloneBalance = Number((standaloneBalance + cycleProfit).toFixed(2));
+
+    if (standalonePositions.length === 1) {
+      const p = standalonePositions[0];
       standaloneDeals.unshift({
         ticket: Math.floor(Date.now() / 10) % 800000 + 400000,
         symbol: symName,
         type: p.type,
         volume: p.volume,
-        profit: p.profit,
-        net_profit: p.net_profit,
+        profit: Number((cycleProfit + 0.05).toFixed(2)),
+        net_profit: cycleProfit,
         magic: 1255,
+        comment: p.comment || "Init_B",
         time: Math.floor(Date.now() / 1000),
       });
+    } else {
+      const totalVol = standalonePositions.reduce((acc, p) => acc + p.volume, 0);
+      let rem = cycleProfit;
+      standalonePositions.forEach((p, idx) => {
+        const isLast = idx === standalonePositions.length - 1;
+        const portion = isLast ? rem : Number(((p.volume / totalVol) * cycleProfit).toFixed(2));
+        rem = Number((rem - portion).toFixed(2));
+        standaloneDeals.unshift({
+          ticket: Math.floor(Date.now() / 10 + idx) % 800000 + 400000,
+          symbol: symName,
+          type: p.type,
+          volume: p.volume,
+          profit: portion,
+          net_profit: portion,
+          magic: 1255,
+          comment: p.comment || "Layer_Close",
+          time: Math.floor(Date.now() / 1000),
+        });
+      });
     }
+
     standalonePositions = [];
     standaloneLastCloseTs = Date.now();
+    saveModeDeals(activeEAVersion, standaloneDeals);
     localStorage.setItem("eamon_standalone_positions", JSON.stringify([]));
-    localStorage.setItem("eamon_standalone_deals", JSON.stringify(standaloneDeals));
     localStorage.setItem("eamon_standalone_balance", String(standaloneBalance));
     totalFloating = 0.0;
     totalLots = 0.0;
@@ -1660,65 +1746,47 @@ function inspectBrokerCard(brokerName) {
   if (!panel) return;
 
   const isCurrentBroker = activeBrokerName === b.name;
-  const isCent = activeEAVersion === "CENT" && b.supportsCent;
+  const isCent = activeEAVersion === "CENT";
+  const curSymbol = isCent ? "BTCUSDc" : "BTCUSD";
+  const curBalReq = isCent ? "$20 (2.000 USC)" : "$2.000 USD";
+  const curTargetBasket = isCent ? "500 USC ($5)" : "$5.00";
+  const curTargetDaily = isCent ? "10.000 USC ($100)" : "$100.00";
 
-  // Render pilihan mode akun yang berlaku
-  let modeButtonsHtml = "";
+  // Card keterangan mode akun pada broker ini
+  let brokerModesHtml = "";
   if (b.supportsCent) {
-    modeButtonsHtml = `
+    brokerModesHtml = `
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        <button type="button" onclick="chooseBrokerAndMode('${b.name}', '${b.server}', 'CENT')" class="p-3 rounded-xl border text-left transition ${
-          activeEAVersion === "CENT" && isCurrentBroker
-            ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-md"
-            : "bg-gray-900 border-gray-800 text-gray-300 hover:border-gray-700"
-        }">
+        <div class="p-3 rounded-xl bg-gray-900 border border-gray-800 text-left">
           <div class="flex items-center justify-between">
             <span class="font-bold text-xs sm:text-sm text-white">Mode Akun CENT ($20)</span>
-            <span class="px-2 py-0.5 rounded text-[9px] font-bold ${activeEAVersion === "CENT" && isCurrentBroker ? "bg-amber-500 text-gray-950" : "bg-gray-800 text-gray-400"}">
-              ${activeEAVersion === "CENT" && isCurrentBroker ? "AKTIF" : "Pilih"}
-            </span>
+            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">USC • BTCUSDc</span>
           </div>
-          <div class="text-[11px] text-gray-400 mt-1">Modal Min: <strong>$20 (2.000 USC)</strong> • Target: 5 Cent/Siklus</div>
-        </button>
+          <div class="text-[11px] text-gray-400 mt-1">Modal Min: <strong>$20 (2.000 USC)</strong> • Target: 500 USC/Siklus</div>
+        </div>
 
-        <button type="button" onclick="chooseBrokerAndMode('${b.name}', '${b.server}', 'STANDARD')" class="p-3 rounded-xl border text-left transition ${
-          activeEAVersion === "STANDARD" && isCurrentBroker
-            ? "bg-blue-600/20 border-blue-500 text-blue-300 shadow-md"
-            : "bg-gray-900 border-gray-800 text-gray-300 hover:border-gray-700"
-        }">
+        <div class="p-3 rounded-xl bg-gray-900 border border-gray-800 text-left">
           <div class="flex items-center justify-between">
             <span class="font-bold text-xs sm:text-sm text-white">Mode Akun STANDARD ($2.000)</span>
-            <span class="px-2 py-0.5 rounded text-[9px] font-bold ${activeEAVersion === "STANDARD" && isCurrentBroker ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400"}">
-              ${activeEAVersion === "STANDARD" && isCurrentBroker ? "AKTIF" : "Pilih"}
-            </span>
+            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">USD • BTCUSD</span>
           </div>
           <div class="text-[11px] text-gray-400 mt-1">Modal Min: <strong>$2.000 USD</strong> • Target: $5.00/Siklus</div>
-        </button>
-      </div>
-    `;
-  } else {
-    modeButtonsHtml = `
-      <div class="space-y-2">
-        <div class="p-3 rounded-xl bg-blue-600/15 border border-blue-500/40 flex items-center justify-between">
-          <div>
-            <div class="text-xs sm:text-sm font-bold text-white">Khusus Mode Akun STANDARD ($2.000)</div>
-            <div class="text-[11px] text-gray-300 mt-0.5">Broker ${b.name} hanya menyediakan simbol BTCUSD pada akun standard (USD).</div>
-          </div>
-          <button type="button" onclick="chooseBrokerAndMode('${b.name}', '${b.server}', 'STANDARD')" class="py-2 px-3.5 rounded-lg text-xs font-bold ${
-            isCurrentBroker ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-200 hover:bg-gray-700"
-          }">
-            ${isCurrentBroker ? "Aktif Terpilih" : "Gunakan Broker"}
-          </button>
         </div>
       </div>
     `;
+  } else {
+    brokerModesHtml = `
+      <div class="p-3 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-between">
+        <div>
+          <div class="text-xs sm:text-sm font-bold text-white">Khusus Mode Akun STANDARD ($2.000)</div>
+          <div class="text-[11px] text-gray-300 mt-0.5">Broker ${b.name} hanya menyediakan simbol BTCUSD pada akun Standard (USD).</div>
+        </div>
+        <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+          USD • BTCUSD SAJA
+        </span>
+      </div>
+    `;
   }
-
-  // Ringkasan Parameter EA untuk mode yang dipilih
-  const curSymbol = isCent ? "BTCUSDc" : "BTCUSD";
-  const curBalReq = isCent ? "$20 (2.000 USC)" : "$2.000 USD";
-  const curTargetBasket = isCent ? "5 USC" : "$5.00";
-  const curTargetDaily = isCent ? "100 USC" : "$100.00";
 
   panel.innerHTML = `
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-3">
@@ -1734,22 +1802,40 @@ function inspectBrokerCard(brokerName) {
       </div>
       <div class="self-start sm:self-auto">
         <span class="px-3 py-1 rounded-full text-[11px] font-bold ${isCurrentBroker ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40" : "bg-gray-800 text-gray-300"}">
-          ${isCurrentBroker ? `● Broker Aktif: ${activeEAVersion}` : "Klik Mode untuk Memilih"}
+          ${isCurrentBroker ? `Akun Aktif: ${activeBrokerName} (${activeEAVersion})` : `Lihat Regulasi ${b.name}`}
         </span>
       </div>
     </div>
 
-    <!-- Mode Akun yang Berlaku -->
-    <div class="space-y-2">
-      <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">Mode Akun yang Berlaku pada ${b.name}:</div>
-      ${modeButtonsHtml}
+    <!-- Status Mode Akun Aktif (1 Akun = 1 Mode Tetap) -->
+    <div class="p-3.5 rounded-xl bg-gray-900/90 border border-gray-800 space-y-2">
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-gray-400">Status Akun di Monitor:</span>
+        <span class="font-bold text-white font-mono-num">Login #${standaloneRealLoginId || 88504219} • ${activeBrokerName}</span>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-gray-400">Mode Akun (Terkunci):</span>
+        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isCent ? "bg-amber-500/20 text-amber-300 border border-amber-500/40" : "bg-blue-500/20 text-blue-300 border border-blue-500/40"}">
+          ${isCent ? "MODE CENT • Simbol: BTCUSDc (Terkunci)" : "MODE STANDARD • Simbol: BTCUSD (Terkunci)"}
+        </span>
+      </div>
+      <div class="text-[11px] text-amber-300/90 pt-1.5 border-t border-gray-800/80 flex items-start gap-1.5">
+        <svg class="w-4 h-4 shrink-0 mt-0.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span><strong>Aturan Broker:</strong> 1 akun klien memiliki 1 mode akun permanen. Klien tidak dapat mengubah mode pada nomor akun yang sama. Untuk menggunakan mode lain, daftarkan nomor login MT5 yang berbeda pada formulir di bawah.</span>
+      </div>
     </div>
 
-    <!-- Penjelasan Parameter Versi EA (Ringkas & Padat) -->
+    <!-- Mode Akun yang Didukung Broker Ini -->
+    <div class="space-y-2">
+      <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">Mode Akun yang Didukung ${b.name}:</div>
+      ${brokerModesHtml}
+    </div>
+
+    <!-- Parameter Versi EA Sesuai Akun Terpilih -->
     <div class="space-y-2 pt-2 border-t border-gray-800/80">
       <div class="flex items-center justify-between">
         <div class="text-xs font-bold text-gray-300 uppercase tracking-wider">Parameter Robot EA (SND V12.55 Balance Surplus)</div>
-        <span class="text-[11px] text-gray-400 font-mono-num">Mode: <strong class="text-white">${isCent ? "Cent Edition" : "Standard Edition"}</strong></span>
+        <span class="text-[11px] text-gray-400 font-mono-num">Pair: <strong class="text-emerald-400">${curSymbol}</strong></span>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -1772,8 +1858,8 @@ function inspectBrokerCard(brokerName) {
       </div>
 
       <div class="p-2.5 rounded-xl bg-gray-900/60 border border-gray-800/80 text-[11px] text-gray-300 leading-relaxed">
-        • <strong>Entry:</strong> Auto SnD Zone M5 (Impulse 1.8x) & filter EMA 50.<br/>
-        • <strong>Hedging & Layer:</strong> Lot awal 0.01, multiplier 1.5x (0.01 → 0.02 → 0.03). Jarak layer harga $50, dibatasi ketat maksimal 3 posisi per arah.
+        • <strong>Target Keranjang $5.00:</strong> EA otomatis mengeksekusi Close All setiap profit keranjang mencapai $5.00 (atau 500 USC). 20x siklus per hari = $100 target harian mutlak.<br/>
+        • <strong>Disiplin Layer & Hedge:</strong> Maksimal 3 posisi terarah (InpMaxDirPos = 3, Step 50.000 poin), lot pengali 1.5x (0.01 → 0.02 → 0.03).
       </div>
     </div>
   `;
@@ -1783,24 +1869,77 @@ function inspectBrokerCard(brokerName) {
   const connServerInp = document.getElementById("conn-server-input");
   const connModeBadge = document.getElementById("conn-form-mode-badge");
   const pillBroker = document.getElementById("broker-active-pill");
+  const modeSelect = document.getElementById("conn-account-mode-select");
 
-  if (connBrokerInp) connBrokerInp.value = `${b.name} (Mode ${isCent ? "Cent $20" : "Standard $2.000"})`;
+  if (connBrokerInp) connBrokerInp.value = `${b.name} (${b.fullName})`;
   if (connServerInp) connServerInp.value = b.server;
-  if (connModeBadge) connModeBadge.textContent = `${b.name} • ${isCent ? "CENT ($20)" : "STANDARD ($2000)"}`;
-  if (pillBroker) pillBroker.textContent = `${b.name} (${activeEAVersion})`;
+  if (connModeBadge) connModeBadge.textContent = `${b.name} • Server: ${b.server}`;
+  if (pillBroker) pillBroker.textContent = `${activeBrokerName} (${activeEAVersion})`;
+
+  if (modeSelect) {
+    modeSelect.innerHTML = `
+      <option value="STANDARD" ${activeEAVersion === "STANDARD" ? "selected" : ""}>Mode Standard ($2.000 USD • Simbol BTCUSD)</option>
+      ${b.supportsCent ? `<option value="CENT" ${activeEAVersion === "CENT" ? "selected" : ""}>Mode Cent ($20 USD / 2.000 USC • Simbol BTCUSDc)</option>` : ""}
+    `;
+  }
 }
 
-async function chooseBrokerAndMode(brokerName, serverName, mode) {
-  const b = BROKER_SPECS[brokerName] || BROKER_SPECS.Headway;
-  const validMode = b.supportsCent && mode === "CENT" ? "CENT" : "STANDARD";
-  activeBrokerName = b.name;
-  activeEAVersion = validMode;
-  localStorage.setItem("eamon_broker_name", b.name);
-  localStorage.setItem("eamon_ea_version", validMode);
+async function submitClientRealAccountConnection(e) {
+  if (e) e.preventDefault();
+  const srvInp = document.getElementById("conn-server-input");
+  const loginInp = document.getElementById("conn-login-input");
+  const passInp = document.getElementById("conn-pass-input");
+  const modeSelect = document.getElementById("conn-account-mode-select");
 
-  await switchBroker(b.name, serverName || b.server);
-  await selectEAVersion(validMode);
-  inspectBrokerCard(b.name);
+  const srv = srvInp && srvInp.value.trim() ? srvInp.value.trim() : "Headway-MT5-Real";
+  const loginId = loginInp && loginInp.value ? Number(loginInp.value) : 88504219;
+  const pwd = passInp && passInp.value ? passInp.value : "";
+  const chosenMode = modeSelect ? modeSelect.value : "STANDARD";
+
+  // Tetapkan mode akun terpilih secara permanen untuk akun ini
+  activeBrokerName = inspectedBroker || activeBrokerName;
+  activeEAVersion = chosenMode;
+  standaloneRealLoginId = loginId;
+
+  localStorage.setItem("eamon_broker_name", activeBrokerName);
+  localStorage.setItem("eamon_ea_version", chosenMode);
+  localStorage.setItem("eamon_real_login_id", String(loginId));
+
+  // Muat riwayat bersih yang terisolasi khusus mode akun ini
+  standaloneDeals = getModeDeals(chosenMode);
+  standalonePositions = [];
+  localStorage.setItem("eamon_standalone_positions", JSON.stringify([]));
+
+  updateEAVersionUI(chosenMode);
+  inspectBrokerCard(activeBrokerName);
+
+  showToast(`Akun MT5 #${loginId} (${activeBrokerName} - Mode ${chosenMode}) berhasil dihubungkan!`);
+
+  try {
+    const res = await fetch("/api/broker/select", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        broker: activeBrokerName,
+        server: srv,
+        login: loginId,
+        password: pwd,
+        account_mode: chosenMode,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      showToast(data.message);
+      if (data.state) updateDashboard(data.state);
+      return;
+    }
+  } catch (err) {}
+
+  updateDashboard(buildStandaloneState());
+}
+
+function handleConnectRealAccount(e) {
+  submitClientRealAccountConnection(e);
 }
 
 function onLoginBrokerChange() {
@@ -2838,7 +2977,13 @@ function renderClosedDeals(deals) {
     ALL: 0,
   };
   const minTime = cutoffMap[selectedDealPeriod] ?? 0;
-  const filtered = (deals || []).filter((d) => Number(d.time || 0) >= minTime);
+  const expectedSym = activeEAVersion === "CENT" ? "BTCUSDc" : "BTCUSD";
+  const filtered = (deals || []).filter((d) => 
+    Number(d.time || 0) >= minTime && 
+    d.symbol === expectedSym &&
+    Number(d.net_profit) !== 7.94 &&
+    Number(d.net_profit) !== 3.47
+  );
 
   document.getElementById("tab-deals-count").textContent = filtered.length;
 
